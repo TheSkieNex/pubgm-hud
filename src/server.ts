@@ -1,12 +1,11 @@
 import express from 'express';
 
 import Config from './config';
-
-import { tableRouter } from './router';
+import router from './router';
 
 const app = express();
 
-app.use('/table', tableRouter);
+app.use('/', router);
 
 app.listen(Config.PORT, () => {
   console.log(`Server is running on port ${Config.PORT}`);

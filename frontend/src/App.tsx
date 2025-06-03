@@ -1,8 +1,14 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+
+import TablePage from './pages/table';
+
 function App() {
   return (
-    <>
-      <h1 className="text-3xl font-bold">PUBGM Hud</h1>
-    </>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/table" element={<TablePage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

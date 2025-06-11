@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "React HUD for PUBGM",
   "main": "index.js",
+  "type": "commonjs",
   "scripts": {
     "start": "ts-node src/server.ts",
     "format": "prettier --write .",

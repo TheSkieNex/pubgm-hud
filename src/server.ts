@@ -5,7 +5,7 @@ import router from './router';
 
 const app = express();
 
-app.use('/', router);
+app.use('/api', router);
 
 app.listen(Config.PORT, () => {
   console.log(`Server is running on port ${Config.PORT}`);

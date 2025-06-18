@@ -6,3 +6,7 @@ dist
 build
 
 local.db
+
+logs/
+
+static/lottie-sync/

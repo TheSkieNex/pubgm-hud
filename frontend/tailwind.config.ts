@@ -5,9 +5,14 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        primary: {
-          500: '#4921b2',
-        },
+        primary: '#9B3EEF',
+        secondary: '#CD1832',
+        yellow: '#F3C74D',
+        dark: '#200B24',
+        'dark-light': '#968A8A',
+      },
+      fontFamily: {
+        circular: ['Circular', 'sans-serif'],
       },
     },
   },

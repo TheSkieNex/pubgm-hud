@@ -1,3 +1,11 @@
 @import 'tailwindcss';
 
 @config '../tailwind.config.ts';
+
+@font-face {
+  font-family: 'Circular';
+  src: url('/fonts/circular-bold.otf') format('opentype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}

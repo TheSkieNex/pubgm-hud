@@ -8,6 +8,13 @@
       "when": 1750280057136,
       "tag": "0000_parallel_squadron_supreme",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1750367750641,
+      "tag": "0001_sudden_vermin",
+      "breakpoints": true
     }
   ]
 }

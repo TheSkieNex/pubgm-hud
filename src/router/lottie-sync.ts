@@ -1,9 +1,10 @@
 import { Router } from 'express';
 
-import LottieSyncUploadController from '@/controllers/lottie-sync';
+import LottieSyncController from '@/controllers/lottie-sync';
 
 const lottieSyncRouter = Router();
 
-lottieSyncRouter.post('/upload', LottieSyncUploadController.upload);
+lottieSyncRouter.get('/get/:uuid', LottieSyncController.get);
+lottieSyncRouter.post('/upload', LottieSyncController.upload);
 
 export default lottieSyncRouter;

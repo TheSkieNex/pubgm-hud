@@ -5,7 +5,8 @@ node_modules
 dist
 build
 
-local.db
+database.db
+*.db
 
 logs/
 

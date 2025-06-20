@@ -20,5 +20,6 @@ export const lottieLayer = sqliteTable('lottie_layers', {
     .references(() => lottieFile.id, {
       onDelete: 'cascade',
     }),
-  layerIndex: integer().notNull(),
+  layerIndex: integer('layer_index').notNull(),
+  outPoint: integer('out_point').notNull().default(0),
 });

@@ -1,7 +1,9 @@
 import { Router } from 'express';
 
+import TableController from '@/controllers/table';
+
 const tableRouter = Router();
 
-// TODO: Add table routes
+tableRouter.post('/init', TableController.init);
 
 export default tableRouter;

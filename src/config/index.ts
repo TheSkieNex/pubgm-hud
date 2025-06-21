@@ -10,6 +10,8 @@ class Config {
   public static readonly STATIC_DIR = path.join(this.BASE_DIR, 'static');
   public static readonly LOG_DIR = path.join(this.BASE_DIR, 'logs');
 
+  public static readonly TABLES_DIR = path.join(this.STATIC_DIR, 'tables');
+
   public static readonly LOTTIE_SYNC_DIR = 'lottie-sync';
   public static readonly LOTTIE_SYNC_DIR_PATH = path.join(this.STATIC_DIR, this.LOTTIE_SYNC_DIR);
 

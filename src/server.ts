@@ -13,7 +13,7 @@ app.use(express.static(Config.STATIC_DIR));
 
 app.use('/lottie-sync', express.static(Config.LOTTIE_SYNC_DIR_PATH));
 
-app.use('/api/v1', router);
+app.use('/api', router);
 
 app.listen(Config.PORT, () => {
   logger.info(`Server is running on http://localhost:${Config.PORT}`);

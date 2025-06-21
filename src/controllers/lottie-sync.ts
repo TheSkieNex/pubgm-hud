@@ -5,15 +5,16 @@ import crypto from 'node:crypto';
 import { Request, Response } from 'express';
 import { eq, and, inArray } from 'drizzle-orm';
 
+import { FileConfig } from '@/lib/types';
+import { LottieJson, getTextLayerContent, isLottieAssetImage } from '@/lib/lottie';
+
 import Config from '@/config';
 import logger from '@/config/logger';
-import { LottieJson, getTextLayerContent, isLottieAssetImage } from '@/lib/lottie';
-import { errorHandler } from '@/lib/decorators/error-handler';
-import { FileConfig } from '@/lib/types';
-import { prepareLottieBuildSource, copyLottieTemplates } from '@/lib/utils';
-
 import db from '@/db';
 import { lottieFile, lottieLayer } from '@/db/schemas/lottie-file';
+import { errorHandler } from '@/lib/decorators/error-handler';
+import { prepareLottieBuildSource, copyLottieTemplates } from '@/lib/utils';
+import { getLayersData } from '@/utils/lottie-sync';
 
 interface UploadRequest {
   source: string;
@@ -27,6 +28,12 @@ interface UpdateRequest {
   selectedLayers: number[];
   updatedLayers: { index: number; value: string }[];
   config: FileConfig;
+}
+
+interface UpdateLayerRequest {
+  uuid: string;
+  layerIndex: number;
+  value: string;
 }
 
 class LottieSyncController {
@@ -400,6 +407,93 @@ class LottieSyncController {
       res.status(404).json({ error: 'Not found' });
       return;
     }
+  }
+
+  @errorHandler()
+  static async getLayersData(req: Request, res: Response): Promise<void> {
+    const { uuid } = req.params;
+
+    if (!uuid) {
+      res.status(404).json({ error: 'Not found' });
+      return;
+    }
+
+    const dbLottieFile = await db.select().from(lottieFile).where(eq(lottieFile.uuid, uuid));
+
+    if (dbLottieFile.length === 0) {
+      res.status(404).json({ error: 'Not found' });
+      return;
+    }
+
+    const layers = await db
+      .select()
+      .from(lottieLayer)
+      .where(eq(lottieLayer.fileId, dbLottieFile[0].id));
+
+    const lottieJsonPath = path.join(Config.LOTTIE_SYNC_DIR_PATH, uuid, 'data.json');
+    const lottieJsonFile = await fs.readFile(lottieJsonPath, 'utf-8');
+    const lottieJson: LottieJson = JSON.parse(lottieJsonFile);
+
+    const layersData = getLayersData(
+      uuid,
+      lottieJson.layers.filter(layer => layers.some(l => l.layerIndex === layer.ind))
+    );
+
+    res.json(layersData);
+  }
+
+  @errorHandler()
+  static async updateLayer(req: Request, res: Response): Promise<void> {
+    const { uuid, layerIndex, value } = req.body as UpdateLayerRequest;
+
+    if (!uuid || !layerIndex || !value) {
+      res.status(404).json({ error: 'Not found' });
+      return;
+    }
+
+    const dbLottieFile = await db.select().from(lottieFile).where(eq(lottieFile.uuid, uuid));
+
+    if (dbLottieFile.length === 0) {
+      res.status(404).json({ error: 'Not found' });
+      return;
+    }
+
+    const lottieJsonPath = path.join(Config.LOTTIE_SYNC_DIR_PATH, uuid, 'data.json');
+    const lottieJsonFile = await fs.readFile(lottieJsonPath, 'utf-8');
+    const lottieJson: LottieJson = JSON.parse(lottieJsonFile);
+
+    const layer = lottieJson.layers.find(layer => layer.ind === Number(layerIndex));
+
+    if (!layer) {
+      res.status(404).json({ error: 'Not found' });
+      return;
+    }
+
+    if (layer.ty === 5 && layer.t) {
+      layer.t.d.k[0].s.t = value;
+    } else if (layer.ty === 2 && layer.refId) {
+      const asset = lottieJson.assets?.find(a => a.id === layer.refId);
+      if (!asset) {
+        res.status(404).json({ error: 'Not found' });
+        return;
+      }
+
+      if (isLottieAssetImage(asset)) {
+        const imageName = asset.p.split('/').pop();
+        if (!imageName) {
+          res.status(404).json({ error: 'Not found' });
+          return;
+        }
+
+        const imagePath = path.join(Config.LOTTIE_SYNC_DIR_PATH, uuid, 'assets', imageName);
+        const buffer = Buffer.from(value, 'base64');
+        await fs.writeFile(imagePath, buffer);
+      }
+    }
+
+    await fs.writeFile(lottieJsonPath, JSON.stringify(lottieJson));
+
+    res.json({ message: 'Layer updated successfully' });
   }
 }
 

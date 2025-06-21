@@ -2,7 +2,7 @@ import express from 'express';
 
 import Config from './config';
 import logger from './config/logger';
-import router from './router';
+import router from './routers';
 
 const app = express();
 

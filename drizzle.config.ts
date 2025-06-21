@@ -8,6 +8,6 @@ export default defineConfig({
   schema: path.join(__dirname, 'src', 'db', 'schemas'),
   dialect: 'sqlite',
   dbCredentials: {
-    url: process.env.DB_FILE_NAME || 'local.db',
+    url: process.env.DB_FILE_NAME || 'database.db',
   },
 });

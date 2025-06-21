@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import Config from '@/config';
 
 export async function prepareLottieBuildSource() {
-  const buildFile = path.join(Config.LOTTIE_SYNC_DIR, '_utils', 'lottie.js');
+  const buildFile = path.join(Config.LOTTIE_SYNC_DIR_PATH, '_utils', 'lottie.js');
   const buildDir = path.dirname(buildFile);
 
   const commitSHA = '507be7fa7fbf748962dd7b1b190d99cc9cf6079b';

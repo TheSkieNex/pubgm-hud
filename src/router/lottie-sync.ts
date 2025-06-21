@@ -1,9 +1,15 @@
 import { Router } from 'express';
 
-import LottieSyncUploadController from '@/controllers/lottie-sync';
+import LottieSyncController from '@/controllers/lottie-sync';
 
 const lottieSyncRouter = Router();
 
-lottieSyncRouter.post('/upload', LottieSyncUploadController.upload);
+lottieSyncRouter.get('/:uuid', LottieSyncController.get);
+lottieSyncRouter.get('/', LottieSyncController.getAll);
+lottieSyncRouter.post('/', LottieSyncController.upload);
+lottieSyncRouter.put('/', LottieSyncController.update);
+lottieSyncRouter.delete('/:uuid', LottieSyncController.delete);
+lottieSyncRouter.patch('/:uuid/layer/:layerIndex', LottieSyncController.toggleLayer);
+lottieSyncRouter.get('/:uuid/layer/:layerIndex/content', LottieSyncController.getLayerContent);
 
 export default lottieSyncRouter;

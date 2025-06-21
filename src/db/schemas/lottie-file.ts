@@ -12,3 +12,14 @@ export const lottieFile = sqliteTable('lottie_files', {
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
 });
+
+export const lottieLayer = sqliteTable('lottie_layers', {
+  id: integer().primaryKey(),
+  fileId: integer('file_id')
+    .notNull()
+    .references(() => lottieFile.id, {
+      onDelete: 'cascade',
+    }),
+  layerIndex: integer('layer_index').notNull(),
+  outPoint: integer('out_point').notNull().default(0),
+});

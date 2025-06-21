@@ -11,7 +11,7 @@ app.use(express.urlencoded({ limit: '100mb', extended: true }));
 
 app.use(express.static(Config.STATIC_DIR));
 
-app.use('/assets', express.static(Config.STATIC_DIR));
+app.use('/lottie-sync', express.static(Config.LOTTIE_SYNC_DIR_PATH));
 
 app.use('/api/v1', router);
 

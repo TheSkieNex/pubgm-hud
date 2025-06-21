@@ -21,7 +21,7 @@ export async function prepareLottieBuildSource() {
 }
 
 export async function copyLottieTemplates(destDirPath: string) {
-  const templatesDirPath = path.join(Config.BASE_DIR, 'templates');
+  const templatesDirPath = path.join(Config.BASE_DIR, 'templates', 'lottie-sync');
   const templateFiles = await fs.readdir(templatesDirPath);
   const templateFilesWithPath = templateFiles.map(file => path.join(templatesDirPath, file));
 

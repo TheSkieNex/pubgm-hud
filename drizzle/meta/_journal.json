@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1750280057136,
-      "tag": "0000_parallel_squadron_supreme",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1750367750641,
-      "tag": "0001_sudden_vermin",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1750427467028,
-      "tag": "0002_swift_trauma",
+      "when": 1750502493765,
+      "tag": "0000_adorable_earthquake",
       "breakpoints": true
     }
   ]

@@ -15,7 +15,7 @@ export const lottieFile = sqliteTable('lottie_files', {
 
 export const lottieLayer = sqliteTable('lottie_layers', {
   id: integer().primaryKey(),
-  fileId: integer('file-id')
+  fileId: integer('file_id')
     .notNull()
     .references(() => lottieFile.id, {
       onDelete: 'cascade',

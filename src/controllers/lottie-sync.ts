@@ -25,7 +25,7 @@ interface UpdateRequest {
   uuid: string;
   fileName: string;
   selectedLayers: number[];
-  updatedLayers: { id: number; value: string }[];
+  updatedLayers: { index: number; value: string }[];
   config: FileConfig;
 }
 
@@ -218,7 +218,7 @@ class LottieSyncController {
     const lottieJson: LottieJson = JSON.parse(await fs.readFile(lottieJsonPath, 'utf-8'));
 
     for (const updatedLayer of updatedLayers) {
-      const actualLayer = lottieJson.layers.find(layer => layer.ind === updatedLayer.id);
+      const actualLayer = lottieJson.layers.find(layer => layer.ind === updatedLayer.index);
       if (!actualLayer) continue;
 
       if (actualLayer.ty === 5 && actualLayer.t) {

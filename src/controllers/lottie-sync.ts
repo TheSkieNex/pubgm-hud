@@ -343,7 +343,7 @@ class LottieSyncController {
   }
 
   @errorHandler()
-  static async getLayerContent(req: Request, res: Response): Promise<void> {
+  static async layerContent(req: Request, res: Response): Promise<void> {
     const { uuid, layerIndex } = req.params;
 
     if (!uuid || !layerIndex) {

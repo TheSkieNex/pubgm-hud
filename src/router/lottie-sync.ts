@@ -10,6 +10,6 @@ lottieSyncRouter.post('/', LottieSyncController.upload);
 lottieSyncRouter.put('/', LottieSyncController.update);
 lottieSyncRouter.delete('/:uuid', LottieSyncController.delete);
 lottieSyncRouter.patch('/:uuid/layer/:layerIndex', LottieSyncController.toggleLayer);
-lottieSyncRouter.get('/:uuid/layer/:layerIndex/content', LottieSyncController.getLayerContent);
+lottieSyncRouter.get('/:uuid/layer/:layerIndex/content', LottieSyncController.layerContent);
 
 export default lottieSyncRouter;

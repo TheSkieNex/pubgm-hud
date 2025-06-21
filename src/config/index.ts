@@ -3,13 +3,8 @@ import path from 'path';
 import 'dotenv/config';
 
 class Config {
-  private static DEV_HOST = 'http://localhost:3011';
-  private static PROD_HOST = 'https://hud.skienex.com';
-
-  public static readonly HOST =
-    process.env.NODE_ENV === 'production' ? this.PROD_HOST : this.DEV_HOST;
-
   public static readonly PORT = process.env.PORT || 3011;
+  public static readonly HOST = process.env.HOST || `http://localhost:${this.PORT}`;
 
   public static readonly BASE_DIR = path.resolve(__dirname, '..', '..');
   public static readonly STATIC_DIR = path.join(this.BASE_DIR, 'static');

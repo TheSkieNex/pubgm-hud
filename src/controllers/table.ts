@@ -27,13 +27,11 @@ interface InitRequest {
 
 interface TeamsInfoRequest {
   table_uuid: string;
-  query: {
-    teamInfoList: {
-      teamId: number;
-      killNum: number;
-      liveMemberNum: number;
-    }[];
-  };
+  team_info_list: {
+    teamId: number;
+    killNum: number;
+    liveMemberNum: number;
+  }[];
 }
 
 class TableController {
@@ -114,7 +112,7 @@ class TableController {
 
   @errorHandler()
   static async teamsInfo(req: Request, res: Response): Promise<void> {
-    const { table_uuid, query } = req.body as TeamsInfoRequest;
+    const { table_uuid, team_info_list } = req.body as TeamsInfoRequest;
 
     const socket = getSocket();
 
@@ -125,7 +123,7 @@ class TableController {
       return;
     }
 
-    for (const teamInfo of query.teamInfoList) {
+    for (const teamInfo of team_info_list) {
       const { teamId, killNum, liveMemberNum } = teamInfo;
 
       const dbTeam = await db

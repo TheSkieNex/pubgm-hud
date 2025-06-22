@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 
 import type { Table } from '@/lib/types';
-import { API_URL } from '@/lib/api';
+import { API_BASE_URL } from '@/lib/api';
 
 export default function TablesPage() {
   const [tables, setTables] = useState<Table[]>([]);
 
   useEffect(() => {
     const fetchTables = async () => {
-      const res = await fetch(`${API_URL}/api/table`);
+      const res = await fetch(`${API_BASE_URL}/api/table`);
       const data = await res.json();
       setTables(data);
     };

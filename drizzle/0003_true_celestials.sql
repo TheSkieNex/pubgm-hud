@@ -1,0 +1,1 @@
+ALTER TABLE `teams` ADD `match_elims` integer DEFAULT 0 NOT NULL;

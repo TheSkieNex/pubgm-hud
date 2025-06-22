@@ -3,14 +3,15 @@ import fs from 'node:fs/promises';
 import crypto from 'node:crypto';
 
 import { Request, Response } from 'express';
-import { desc, eq } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
 
 import { errorHandler } from '@/lib/decorators/error-handler';
 
 import Config from '@/config';
 import db from '@/db';
+import { getSocket } from '@/config/socket';
 
-import { table, teams, teamPoints } from '@/db/schemas/table';
+import { table, team, teamPoint } from '@/db/schemas/table';
 
 interface InitRequest {
   table: {
@@ -22,6 +23,17 @@ interface InitRequest {
     tag: string;
     logo_data: string;
   }[];
+}
+
+interface TeamsInfoRequest {
+  table_uuid: string;
+  query: {
+    teamInfoList: {
+      teamId: number;
+      killNum: number;
+      liveMemberNum: number;
+    }[];
+  };
 }
 
 class TableController {
@@ -40,14 +52,26 @@ class TableController {
     const tableDirPath = path.join(Config.STATIC_DIR, 'tables', dbTable[0].uuid);
     await fs.mkdir(tableDirPath, { recursive: true });
 
-    for (const team of teamsData) {
-      await db
-        .insert(teams)
-        .values({ tableId: dbTable[0].id, teamId: team.id, name: team.name, tag: team.tag });
+    for (const teamData of teamsData) {
+      const dbTeam = await db
+        .insert(team)
+        .values({
+          tableId: dbTable[0].id,
+          teamId: teamData.id,
+          name: teamData.name,
+          tag: teamData.tag,
+        })
+        .returning();
 
-      const logoPath = path.join(tableDirPath, `${team.id}.png`);
-      const base64Data = team.logo_data.replace(/^data:image\/\w+;base64,/, '');
+      const logoPath = path.join(tableDirPath, `${teamData.id}.png`);
+      const base64Data = teamData.logo_data.replace(/^data:image\/\w+;base64,/, '');
       await fs.writeFile(logoPath, Buffer.from(base64Data, 'base64'));
+
+      await db.insert(teamPoint).values({
+        tableId: dbTable[0].id,
+        teamId: dbTeam[0].id,
+        points: 0,
+      });
     }
 
     res.json({ success: true });
@@ -70,22 +94,96 @@ class TableController {
 
     const dbTable = await db.select().from(table).where(eq(table.uuid, uuid));
 
-    if (!dbTable) {
+    if (dbTable.length === 0) {
       res.status(404).json({ error: 'Table not found' });
       return;
     }
 
-    const dbTeams = await db.select().from(teams).where(eq(teams.tableId, dbTable[0].id));
+    const dbTeams = await db.select().from(team).where(eq(team.tableId, dbTable[0].id));
     const dbTeamPoints = await db
       .select()
-      .from(teamPoints)
-      .where(eq(teamPoints.tableId, dbTable[0].id));
+      .from(teamPoint)
+      .where(eq(teamPoint.tableId, dbTable[0].id));
 
     res.json({
       table: dbTable[0],
       teams: dbTeams,
       teamPoints: dbTeamPoints,
     });
+  }
+
+  @errorHandler()
+  static async teamsInfo(req: Request, res: Response): Promise<void> {
+    const { table_uuid, query } = req.body as TeamsInfoRequest;
+
+    const socket = getSocket();
+
+    const dbTable = await db.select().from(table).where(eq(table.uuid, table_uuid));
+
+    if (dbTable.length === 0 || !table_uuid) {
+      res.status(404).json({ error: 'Table not found' });
+      return;
+    }
+
+    for (const teamInfo of query.teamInfoList) {
+      const { teamId, killNum, liveMemberNum } = teamInfo;
+
+      const dbTeam = await db
+        .select()
+        .from(team)
+        .where(and(eq(team.id, teamId), eq(team.tableId, dbTable[0].id)))
+        .orderBy(desc(team.id))
+        .limit(1);
+
+      if (dbTeam.length === 0) continue;
+
+      if (killNum !== dbTeam[0].matchElims) {
+        const dbTeamPoint = await db
+          .select()
+          .from(teamPoint)
+          .where(eq(teamPoint.teamId, teamId))
+          .limit(1);
+
+        await db
+          .update(teamPoint)
+          .set({
+            points: dbTeamPoint[0].points + (killNum - dbTeam[0].matchElims),
+          })
+          .where(eq(teamPoint.teamId, teamId));
+
+        await db.update(team).set({ matchElims: killNum }).where(eq(team.id, teamId));
+      }
+
+      socket.emit('teamInfo', {
+        teamId,
+        killNum: killNum - dbTeam[0].matchElims,
+        liveMemberNum,
+        matchElims: killNum,
+      });
+    }
+
+    res.json({ success: true });
+  }
+
+  @errorHandler()
+  static async resetMatchElims(req: Request, res: Response): Promise<void> {
+    const { uuid } = req.params;
+
+    if (!uuid) {
+      res.status(400).json({ error: 'Table UUID is required' });
+      return;
+    }
+
+    const dbTable = await db.select().from(table).where(eq(table.uuid, uuid));
+
+    if (dbTable.length === 0) {
+      res.status(404).json({ error: 'Table not found' });
+      return;
+    }
+
+    await db.update(team).set({ matchElims: 0 }).where(eq(team.tableId, dbTable[0].id));
+
+    res.json({ success: true });
   }
 }
 

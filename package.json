@@ -9,7 +9,8 @@
     "format": "prettier --write .",
     "lint": "eslint .",
     "db:push": "drizzle-kit push",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "empty-tables": "tsx scripts/empty-tables.ts"
   },
   "author": "CCXLV",
   "license": "MIT",
@@ -36,6 +37,7 @@
     "dotenv": "^16.5.0",
     "drizzle-orm": "^0.44.1",
     "express": "^5.1.0",
+    "socket.io": "^4.8.1",
     "winston": "^3.17.0"
   }
 }

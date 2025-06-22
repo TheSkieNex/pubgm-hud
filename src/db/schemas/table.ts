@@ -10,7 +10,7 @@ export const table = sqliteTable('table', {
     .default(sql`CURRENT_TIMESTAMP`),
 });
 
-export const teams = sqliteTable('teams', {
+export const team = sqliteTable('teams', {
   id: integer().primaryKey(),
   tableId: integer('table_id')
     .notNull()
@@ -20,9 +20,10 @@ export const teams = sqliteTable('teams', {
   teamId: integer('team_id').notNull(),
   name: text('name').notNull(),
   tag: text('tag').notNull(),
+  matchElims: integer('match_elims').notNull().default(0),
 });
 
-export const teamPoints = sqliteTable('team_points', {
+export const teamPoint = sqliteTable('team_points', {
   id: integer().primaryKey(),
   tableId: integer('table_id')
     .notNull()
@@ -31,7 +32,7 @@ export const teamPoints = sqliteTable('team_points', {
     }),
   teamId: integer('team_id')
     .notNull()
-    .references(() => teams.id, {
+    .references(() => team.id, {
       onDelete: 'cascade',
     }),
   points: integer('points').notNull().default(0),

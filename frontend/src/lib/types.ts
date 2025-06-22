@@ -11,6 +11,8 @@ export interface Team {
   teamId: number;
   name: string;
   tag: string;
+  matchElims: number;
+  points: number; // Client only
 }
 
 export interface TeamPoint {

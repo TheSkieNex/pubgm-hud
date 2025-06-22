@@ -1,11 +1,18 @@
+import { createServer } from 'node:http';
+
 import express from 'express';
 import cors from 'cors';
 
 import Config from './config';
 import logger from './config/logger';
+import { initSocket } from './config/socket';
+
 import router from './routers';
 
 const app = express();
+const server = createServer(app);
+
+initSocket(server);
 
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ limit: '100mb', extended: true }));
@@ -26,6 +33,6 @@ app.use('/tables', express.static(Config.TABLES_DIR));
 
 app.use('/api', router);
 
-app.listen(Config.PORT, () => {
+server.listen(Config.PORT, () => {
   logger.info(`Server is running on http://localhost:${Config.PORT}`);
 });

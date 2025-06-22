@@ -1,4 +1,4 @@
-import { API_URL } from '@/lib/api';
+import { API_BASE_URL } from '@/lib/api';
 import type { Table, Team, TeamElim, TeamPoint } from '@/lib/types';
 
 interface TableProps {
@@ -60,7 +60,7 @@ const TeamComponent = ({ id, teamId, tableUUID, tag, points, elims }: TeamProps)
         <div className="w-[42px] h-full flex items-center justify-center">
           <div
             className="w-7 h-7 bg-contain bg-center bg-no-repeat"
-            style={{ backgroundImage: `url(${API_URL}/tables/${tableUUID}/${teamId}.png)` }}
+            style={{ backgroundImage: `url(${API_BASE_URL}/tables/${tableUUID}/${teamId}.png)` }}
           ></div>
         </div>
         <div className="ml-2">{tag.toUpperCase()}</div>

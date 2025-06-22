@@ -4,7 +4,7 @@ export interface ApiResponse<T = unknown> {
   data?: T;
 }
 
-export interface FileConfig {
+export interface LottieFileConfig {
   lottie: {
     renderer: 'svg' | 'canvas' | 'html';
     loop: boolean;

@@ -5,7 +5,7 @@ import crypto from 'node:crypto';
 import { Request, Response } from 'express';
 import { eq, and, inArray } from 'drizzle-orm';
 
-import { FileConfig } from '@/lib/types';
+import { LottieFileConfig } from '@/lib/types';
 import { LottieJson, getTextLayerContent, isLottieAssetImage } from '@/lib/lottie';
 
 import Config from '@/config';
@@ -28,7 +28,7 @@ interface UpdateRequest {
   fileName: string;
   selectedLayers: number[];
   updatedLayers: { index: number; value: string }[];
-  config: FileConfig;
+  config: LottieFileConfig;
 }
 
 interface UpdateLayerRequest {

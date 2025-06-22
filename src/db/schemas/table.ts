@@ -1,7 +1,22 @@
+import { sql } from 'drizzle-orm';
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+
+export const table = sqliteTable('table', {
+  id: integer().primaryKey(),
+  uuid: text('uuid').notNull(),
+  name: text('name').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
 
 export const teams = sqliteTable('teams', {
   id: integer().primaryKey(),
+  tableId: integer('table_id')
+    .notNull()
+    .references(() => table.id, {
+      onDelete: 'cascade',
+    }),
   teamId: integer('team_id').notNull(),
   name: text('name').notNull(),
   tag: text('tag').notNull(),
@@ -9,6 +24,11 @@ export const teams = sqliteTable('teams', {
 
 export const teamPoints = sqliteTable('team_points', {
   id: integer().primaryKey(),
+  tableId: integer('table_id')
+    .notNull()
+    .references(() => table.id, {
+      onDelete: 'cascade',
+    }),
   teamId: integer('team_id')
     .notNull()
     .references(() => teams.id, {

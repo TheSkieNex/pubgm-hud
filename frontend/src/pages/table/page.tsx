@@ -6,11 +6,9 @@ import { TableComponent } from '@/components/table';
 export default function TablePage() {
   const { uuid } = useParams();
 
-  const { table, teams, teamPoints, teamElims } = useTable(uuid || '');
+  const { table, teams } = useTable(uuid || '');
 
-  if (!table || !teams || !teamPoints || !teamElims) return null;
+  if (!table || !teams) return null;
 
-  return (
-    <TableComponent table={table} teams={teams} teamPoints={teamPoints} teamElims={teamElims} />
-  );
+  return <TableComponent table={table} teams={teams} />;
 }

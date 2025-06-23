@@ -1,27 +1,25 @@
 import { API_BASE_URL } from '@/lib/api';
-import type { Table, Team, TeamElim, TeamPoint } from '@/lib/types';
+import type { Table, Team } from '@/lib/types';
 
 interface TableProps {
   table: Table;
   teams: Team[];
-  teamPoints: TeamPoint[];
-  teamElims: TeamElim[];
 }
 
-export const TableComponent = ({ table, teams, teamPoints, teamElims }: TableProps) => {
+export const TableComponent = ({ table, teams }: TableProps) => {
   return (
     <div className="w-[344px]">
       <HeaderComponent />
       <div className="flex flex-col">
         {teams.map((team, index) => (
           <TeamComponent
-            key={team.id}
+            key={team.teamId}
             id={index + 1}
             teamId={team.teamId}
             tableUUID={table.uuid}
             tag={team.tag}
-            points={teamPoints.find(point => point.teamId === team.id)?.points || 0}
-            elims={teamElims.find(elim => elim.teamId === team.id)?.elim || 0}
+            points={team.points}
+            elims={team.matchElims}
           />
         ))}
       </div>

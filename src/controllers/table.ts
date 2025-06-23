@@ -105,7 +105,13 @@ class TableController {
 
     res.json({
       table: dbTable[0],
-      teams: dbTeams,
+      teams: dbTeams.map(team => {
+        const teamPoints = dbTeamPoints.find(t => t.teamId === team.id);
+        return {
+          ...team,
+          points: teamPoints?.points,
+        };
+      }),
       teamPoints: dbTeamPoints,
     });
   }
@@ -129,7 +135,7 @@ class TableController {
       const dbTeam = await db
         .select()
         .from(team)
-        .where(and(eq(team.id, teamId), eq(team.tableId, dbTable[0].id)))
+        .where(and(eq(team.teamId, teamId), eq(team.tableId, dbTable[0].id)))
         .orderBy(desc(team.id))
         .limit(1);
 
@@ -139,7 +145,7 @@ class TableController {
         const dbTeamPoint = await db
           .select()
           .from(teamPoint)
-          .where(eq(teamPoint.teamId, teamId))
+          .where(eq(teamPoint.teamId, dbTeam[0].id))
           .limit(1);
 
         await db
@@ -147,14 +153,13 @@ class TableController {
           .set({
             points: dbTeamPoint[0].points + (killNum - dbTeam[0].matchElims),
           })
-          .where(eq(teamPoint.teamId, teamId));
+          .where(eq(teamPoint.teamId, dbTeam[0].id));
 
-        await db.update(team).set({ matchElims: killNum }).where(eq(team.id, teamId));
+        await db.update(team).set({ matchElims: killNum }).where(eq(team.teamId, teamId));
       }
 
       socket.emit('teamInfo', {
         teamId,
-        killNum: killNum - dbTeam[0].matchElims,
         liveMemberNum,
         matchElims: killNum,
       });

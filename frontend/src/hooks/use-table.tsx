@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 
 import { socket } from '@/lib/api';
 import { fetchTable } from '@/lib/utils';
@@ -14,8 +14,6 @@ export const useTable = (uuid: string) => {
   const [table, setTable] = useState<Table | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
 
-  const teamsNeedToUpdate = useRef(false);
-
   useEffect(() => {
     const fetchTableData = async () => {
       const data = await fetchTable(uuid);
@@ -28,28 +26,20 @@ export const useTable = (uuid: string) => {
   useEffect(() => {
     socket.on('teamInfo', (data: TeamInfo) => {
       setTeams(prev => {
-        return prev.map(team =>
-          team.teamId === data.teamId
-            ? {
-                ...team,
-                points: team.points + (data.matchElims - team.matchElims),
-                matchElims: data.matchElims,
-              }
-            : team
-        );
+        return prev
+          .map(team =>
+            team.teamId === data.teamId
+              ? {
+                  ...team,
+                  points: team.points + (data.matchElims - team.matchElims),
+                  matchElims: data.matchElims,
+                }
+              : team
+          )
+          .sort((a, b) => b.points - a.points);
       });
-      teamsNeedToUpdate.current = true;
     });
   }, []);
-
-  useEffect(() => {
-    if (teamsNeedToUpdate.current) {
-      setTeams(prev => {
-        return prev.sort((a, b) => b.points - a.points);
-      });
-      teamsNeedToUpdate.current = false;
-    }
-  }, [teams]);
 
   return { table, teams };
 };

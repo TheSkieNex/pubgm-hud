@@ -15,7 +15,7 @@ class Config {
   public static readonly LOTTIE_SYNC_DIR = 'lottie-sync';
   public static readonly LOTTIE_SYNC_DIR_PATH = path.join(this.STATIC_DIR, this.LOTTIE_SYNC_DIR);
 
-  public static readonly DB_PATH = path.join(this.BASE_DIR, process.env.DB_FILE_NAME || 'local.db');
+  public static readonly DB_PATH = path.join(this.BASE_DIR, process.env.DB_FILE_NAME || 'database.db');
 }
 
 export default Config;

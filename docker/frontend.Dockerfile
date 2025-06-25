@@ -1,4 +1,4 @@
-FROM node:22-slim
+FROM node:22-slim AS frontend-builder
 
 WORKDIR /pubgm-hud/frontend
 
@@ -10,4 +10,19 @@ COPY frontend/ .
 
 RUN npm run build
 
-RUN apt-get update && apt-get install -y nginx
+FROM nginx:latest
+
+# Copy the nginx configuration template
+COPY docker/nginx.conf /etc/nginx/nginx.conf.template
+
+# Copy the entrypoint script
+COPY scripts/docker-entrypoint.sh /docker-entrypoint.sh
+
+# Copy the built frontend files
+COPY --from=frontend-builder /pubgm-hud/frontend/dist /var/www/html
+
+# Make the entrypoint script executable
+RUN chmod +x /docker-entrypoint.sh
+
+# Set the entrypoint
+ENTRYPOINT ["/docker-entrypoint.sh"]

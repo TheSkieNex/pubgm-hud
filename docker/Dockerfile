@@ -1,7 +1,4 @@
-FROM node:22-slim
-
-# Create user and group properly
-RUN groupadd -g 999 appuser && useradd -m -u 999 -g appuser appuser
+FROM node:22-bullseye
 
 WORKDIR /pubgm-hud
 
@@ -18,9 +15,5 @@ RUN npm install
 COPY . .
 
 RUN npm run build
-
-RUN chown -R appuser:appuser /pubgm-hud
-
-USER appuser
 
 CMD ["npm", "run", "prod"]

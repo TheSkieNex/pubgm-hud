@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 
-import logger from '@/config/logger';
+import logger from '../../config/logger';
 
 type AsyncRequestHandler = (req: Request, res: Response) => Promise<void>;
 

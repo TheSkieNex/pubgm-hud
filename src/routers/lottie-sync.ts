@@ -1,6 +1,6 @@
 import { Router } from 'express';
 
-import LottieSyncController from '@/controllers/lottie-sync';
+import LottieSyncController from '../controllers/lottie-sync';
 
 const lottieSyncRouter = Router();
 

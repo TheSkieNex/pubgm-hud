@@ -5,17 +5,17 @@ import crypto from 'node:crypto';
 import { Request, Response } from 'express';
 import { eq, and, inArray } from 'drizzle-orm';
 
-import { LottieFileConfig } from '@/lib/types';
-import { LottieJson, getTextLayerContent, isLottieAssetImage } from '@/lib/lottie';
+import { LottieFileConfig } from '../lib/types';
+import { LottieJson, getTextLayerContent, isLottieAssetImage } from '../lib/lottie';
 
-import Config from '@/config';
-import logger from '@/config/logger';
-import db from '@/db';
+import Config from '../config';
+import logger from '../config/logger';
+import db from '../db';
 
-import { lottieFile, lottieLayer } from '@/db/schemas/lottie-file';
-import { errorHandler } from '@/lib/decorators/error-handler';
-import { prepareLottieBuildSource, copyLottieTemplates } from '@/lib/utils';
-import { getLayersData } from '@/utils/lottie-sync';
+import { lottieFile, lottieLayer } from '../db/schemas/lottie-file';
+import { errorHandler } from '../lib/decorators/error-handler';
+import { prepareLottieBuildSource, copyLottieTemplates } from '../lib/utils';
+import { getLayersData } from '../utils/lottie-sync';
 
 interface UploadRequest {
   source: string;

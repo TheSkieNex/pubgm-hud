@@ -5,13 +5,13 @@ import crypto from 'node:crypto';
 import { Request, Response } from 'express';
 import { and, desc, eq } from 'drizzle-orm';
 
-import { errorHandler } from '@/lib/decorators/error-handler';
+import { errorHandler } from '../lib/decorators/error-handler';
 
-import Config from '@/config';
-import db from '@/db';
-import { getSocket } from '@/config/socket';
+import Config from '../config';
+import db from '../db';
+import { getSocket } from '../config/socket';
 
-import { table, team, teamPoint } from '@/db/schemas/table';
+import { table, team, teamPoint } from '../db/schemas/table';
 
 interface InitRequest {
   table: {

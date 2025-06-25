@@ -1,0 +1,9 @@
+services:
+  pubgm-hud-api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: pubgm-hud-api
+    restart: unless-stopped
+    ports:
+      - 3011:3011

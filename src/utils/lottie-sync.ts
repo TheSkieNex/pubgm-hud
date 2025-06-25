@@ -1,4 +1,4 @@
-import { LottieLayer } from '@/lib/lottie';
+import { LottieLayer } from '../lib/lottie';
 
 export function getLayersData(fileUUID: string, layers: LottieLayer[]) {
   const layersData = layers.map(layer => ({

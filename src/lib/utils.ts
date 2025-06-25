@@ -1,7 +1,7 @@
 import path from 'node:path';
 import fs from 'node:fs/promises';
 
-import Config from '@/config';
+import Config from '../config';
 
 export async function prepareLottieBuildSource() {
   const buildFile = path.join(Config.LOTTIE_SYNC_DIR_PATH, '_utils', 'lottie.js');

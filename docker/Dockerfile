@@ -3,7 +3,7 @@ FROM node:22-slim
 # Create user and group properly
 RUN groupadd -g 999 appuser && useradd -m -u 999 -g appuser appuser
 
-WORKDIR /src
+WORKDIR /pubgm-hud
 
 RUN apt-get update && apt-get install -y \
     build-essential \
@@ -19,7 +19,7 @@ COPY . .
 
 RUN npm run build
 
-RUN chown -R appuser:appuser /src
+RUN chown -R appuser:appuser /pubgm-hud
 
 USER appuser
 

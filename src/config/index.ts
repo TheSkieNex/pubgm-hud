@@ -2,9 +2,13 @@ import path from 'path';
 
 import 'dotenv/config';
 
+import { getLocalIpAddress } from '../utils/server';
+
+const localIpAddress = getLocalIpAddress();
+
 class Config {
-  public static readonly PORT = process.env.PORT || 3011;
-  public static readonly HOST = process.env.HOST || `http://localhost:${this.PORT}`;
+  public static readonly PORT = Number(process.env.PORT) || 3011;
+  public static readonly HOST = process.env.HOST || `http://${localIpAddress}:${this.PORT}`;
 
   public static readonly BASE_DIR = path.resolve(__dirname, '..', '..');
   public static readonly STATIC_DIR = path.join(this.BASE_DIR, 'static');

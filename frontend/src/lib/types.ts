@@ -18,3 +18,11 @@ export interface TeamPoint {
   teamId: number;
   points: number;
 }
+
+export interface TeamPlayer {
+  teamId: number;
+  uID: number;
+  health: number;
+  liveState: number; // 0: knocked, 1: alive
+  bHasDied: boolean; // true: dead, false: alive
+}

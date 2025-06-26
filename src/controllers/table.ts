@@ -30,10 +30,19 @@ interface TeamsInfoRequest {
   team_info_list: {
     teamId: number;
     killNum: number;
-    liveMemberNum: number;
   }[];
 }
 
+interface PlayersInfoRequest {
+  table_uuid: string;
+  player_info_list: {
+    teamId: number;
+    uID: number;
+    health: number;
+    liveState: number;
+    bHasDied: boolean;
+  }[];
+}
 class TableController {
   @errorHandler()
   static async init(req: Request, res: Response): Promise<void> {
@@ -110,9 +119,9 @@ class TableController {
         return {
           ...team,
           points: teamPoints?.points,
+          liveMemberNum: 4,
         };
       }),
-      teamPoints: dbTeamPoints,
     });
   }
 
@@ -130,7 +139,7 @@ class TableController {
     }
 
     for (const teamInfo of team_info_list) {
-      const { teamId, killNum, liveMemberNum } = teamInfo;
+      const { teamId, killNum } = teamInfo;
 
       const dbTeam = await db
         .select()
@@ -160,7 +169,6 @@ class TableController {
 
       socket.emit('teamInfo', {
         teamId,
-        liveMemberNum,
         matchElims: killNum,
       });
     }
@@ -185,6 +193,24 @@ class TableController {
     }
 
     await db.update(team).set({ matchElims: 0 }).where(eq(team.tableId, dbTable[0].id));
+
+    res.json({ success: true });
+  }
+
+  @errorHandler()
+  static async playersInfo(req: Request, res: Response): Promise<void> {
+    const { table_uuid, player_info_list } = req.body as PlayersInfoRequest;
+
+    const socket = getSocket();
+
+    const dbTable = await db.select().from(table).where(eq(table.uuid, table_uuid));
+
+    if (dbTable.length === 0 || !table_uuid) {
+      res.status(404).json({ error: 'Table not found' });
+      return;
+    }
+
+    socket.emit('playersInfo', player_info_list);
 
     res.json({ success: true });
   }

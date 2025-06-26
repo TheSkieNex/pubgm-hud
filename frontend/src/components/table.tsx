@@ -1,12 +1,14 @@
 import { API_BASE_URL } from '@/lib/api';
-import type { Table, Team } from '@/lib/types';
+import type { Table, Team, TeamPlayer } from '@/lib/types';
+import { cn } from '@/lib/utils';
 
 interface TableProps {
   table: Table;
   teams: Team[];
+  teamPlayers: TeamPlayer[];
 }
 
-export const TableComponent = ({ table, teams }: TableProps) => {
+export const TableComponent = ({ table, teams, teamPlayers }: TableProps) => {
   return (
     <div className="w-[344px]">
       <HeaderComponent />
@@ -20,6 +22,7 @@ export const TableComponent = ({ table, teams }: TableProps) => {
             tag={team.tag}
             points={team.points}
             elims={team.matchElims}
+            teamPlayers={teamPlayers.filter(player => player.teamId === team.teamId)}
           />
         ))}
       </div>
@@ -46,9 +49,10 @@ interface TeamProps {
   tag: string;
   points: number;
   elims: number;
+  teamPlayers: TeamPlayer[];
 }
 
-const TeamComponent = ({ id, teamId, tableUUID, tag, points, elims }: TeamProps) => {
+const TeamComponent = ({ id, teamId, tableUUID, tag, points, elims, teamPlayers }: TeamProps) => {
   return (
     <div className="w-full h-[42px] flex border-b border-[#EDE9F7] font-circular">
       <div className="w-[36px] h-full flex items-center justify-center bg-table-dark text-white">
@@ -65,10 +69,21 @@ const TeamComponent = ({ id, teamId, tableUUID, tag, points, elims }: TeamProps)
       </div>
       <div className="flex flex-1 bg-table-dark text-white text-lg">
         <div className="w-[60px] h-full flex items-center justify-center gap-[5px]">
-          <div className="w-[3px] h-[26px] bg-table-yellow"></div>
-          <div className="w-[3px] h-[26px] bg-table-yellow"></div>
-          <div className="w-[3px] h-[26px] bg-table-yellow"></div>
-          <div className="w-[3px] h-[26px] bg-table-yellow"></div>
+          {teamPlayers.map((player, index) => (
+            <div
+              key={index}
+              className="w-[3px] h-[26px] bg-table-dark-light flex items-end justify-center"
+            >
+              <div
+                className={cn(
+                  'w-[3px] h-[26px] transition-all duration-300',
+                  player.liveState === 1 ? 'bg-table-yellow' : 'bg-red-500',
+                  player.bHasDied && 'bg-transparent'
+                )}
+                style={player.liveState === 1 ? { height: `${player.health}%` } : {}}
+              ></div>
+            </div>
+          ))}
         </div>
         <div className="w-[52px] h-full flex items-center justify-center">{points}</div>
         <div className="w-[52px] h-full flex items-center justify-center">{elims}</div>

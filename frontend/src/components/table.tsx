@@ -52,6 +52,8 @@ interface TeamProps {
   teamPlayers: TeamPlayer[];
 }
 
+// TODO: Need to sort the knocked players to the right
+
 const TeamComponent = ({ id, teamId, tableUUID, tag, points, elims, teamPlayers }: TeamProps) => {
   return (
     <div className="w-full h-[42px] flex border-b border-[#EDE9F7] font-circular">

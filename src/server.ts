@@ -9,6 +9,7 @@ import logger from './config/logger';
 import { initSocket } from './config/socket';
 
 import router from './routers';
+import { authMiddleware } from './middleware';
 
 const app = express();
 const server = createServer(app);
@@ -19,22 +20,15 @@ initSocket(server);
 
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ limit: '100mb', extended: true }));
+
 app.use(
   cors({
-    origin: [
-      'http://localhost:5173',
-      'http://localhost:10086',
-      'http://localhost:80',
-      `http://${localIpAddress}:5173`,
-      `http://${localIpAddress}:10086`,
-      `http://${localIpAddress}:80`,
-    ],
+    origin: Config.ALLOWED_ORIGINS,
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['*'],
-    maxAge: 600,
   })
 );
+
+app.use(authMiddleware);
 
 app.use(express.static(Config.STATIC_DIR));
 

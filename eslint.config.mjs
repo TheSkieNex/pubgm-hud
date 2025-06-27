@@ -15,6 +15,7 @@ export default defineConfig([
       'static',
       'templates',
       'ecosystem.config.js',
+      'frontend'
     ],
   },
   tseslint.configs.recommended,

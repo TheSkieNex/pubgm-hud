@@ -1,6 +1,7 @@
 import { API_BASE_URL } from '@/lib/api';
 import type { Table, Team, TeamPlayer } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'motion/react';
 
 import TeamEliminated from './team-eliminated';
 import { useEffect, useState } from 'react';
@@ -57,7 +58,17 @@ const TeamComponent = ({
   }, [eliminated]);
 
   return (
-    <div className="w-full h-[42px] flex border-b border-[#EDE9F7] font-circular relative">
+    <motion.div
+      className="w-full h-[42px] flex border-b border-[#EDE9F7] font-circular relative"
+      layout
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{
+        type: 'keyframes',
+        duration: 0.3,
+      }}
+    >
       {eliminated && (
         <>
           <TeamEliminated show={showEliminated} placement={rank} />
@@ -99,7 +110,7 @@ const TeamComponent = ({
         <div className="w-[52px] h-full flex items-center justify-center">{points}</div>
         <div className="w-[52px] h-full flex items-center justify-center">{elims}</div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -132,22 +143,24 @@ export const TableComponent = ({ table, teams, teamPlayers }: TableProps) => {
   return (
     <div className="w-[344px]">
       <HeaderComponent />
-      <div className="flex flex-col">
-        {teams.map((team, index) => (
-          <TeamComponent
-            key={team.teamId}
-            id={index + 1}
-            teamId={team.teamId}
-            tableUUID={table.uuid}
-            tag={team.tag}
-            points={team.points}
-            elims={team.matchElims}
-            teamPlayers={teamPlayers.filter(player => player.teamId === team.teamId)}
-            eliminated={team.eliminated}
-            rank={team.rank}
-          />
-        ))}
-      </div>
+      <AnimatePresence mode="popLayout">
+        <div className="flex flex-col">
+          {teams.map((team, index) => (
+            <TeamComponent
+              key={team.teamId}
+              id={index + 1}
+              teamId={team.teamId}
+              tableUUID={table.uuid}
+              tag={team.tag}
+              points={team.points}
+              elims={team.matchElims}
+              teamPlayers={teamPlayers.filter(player => player.teamId === team.teamId)}
+              eliminated={team.eliminated}
+              rank={team.rank}
+            />
+          ))}
+        </div>
+      </AnimatePresence>
       <FooterComponent />
     </div>
   );

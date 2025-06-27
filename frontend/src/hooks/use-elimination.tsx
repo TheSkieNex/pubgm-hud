@@ -44,6 +44,7 @@ export const useElimination = () => {
           }
         });
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uuid]);
 
   const processNextTeam = async () => {

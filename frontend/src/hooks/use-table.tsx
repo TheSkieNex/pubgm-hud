@@ -58,7 +58,17 @@ export const useTable = (uuid: string) => {
       });
     });
 
-    socket.on('playersInfo', (data: TeamPlayer[]) => setTeamPlayers(data));
+    socket.on('playersInfo', (data: TeamPlayer[]) => {
+      setTeamPlayers(
+        data.sort((a, b) => {
+          if (a.bHasDied && !b.bHasDied) return 1;
+          if (!a.bHasDied && b.bHasDied) return -1;
+          if (a.liveState === 0 && b.liveState === 1) return 1;
+          if (a.liveState === 1 && b.liveState === 0) return -1;
+          return 0;
+        })
+      );
+    });
   }, []);
 
   return { table, teams, teamPlayers };

@@ -30,6 +30,7 @@ interface TeamsInfoRequest {
   team_info_list: {
     teamId: number;
     killNum: number;
+    liveMemberNum: number;
   }[];
 }
 
@@ -138,8 +139,10 @@ class TableController {
       return;
     }
 
+    const teamsData = [];
+
     for (const teamInfo of team_info_list) {
-      const { teamId, killNum } = teamInfo;
+      const { teamId, killNum, liveMemberNum } = teamInfo;
 
       const dbTeam = await db
         .select()
@@ -165,13 +168,24 @@ class TableController {
           .where(eq(teamPoint.teamId, dbTeam[0].id));
 
         await db.update(team).set({ matchElims: killNum }).where(eq(team.teamId, teamId));
+
+        if (liveMemberNum === 0) {
+          socket.emit(`team-eliminated-${table_uuid}`, {
+            teamId,
+            matchElims: killNum,
+            logoUrl: path.join(Config.STATIC_DIR, 'tables', table_uuid, `${teamId}.png`),
+          });
+        }
       }
 
-      socket.emit('teamInfo', {
+      teamsData.push({
         teamId,
         matchElims: killNum,
+        liveMemberNum,
       });
     }
+
+    socket.emit(`team-info-${table_uuid}`, teamsData);
 
     res.json({ success: true });
   }
@@ -210,7 +224,7 @@ class TableController {
       return;
     }
 
-    socket.emit('playersInfo', player_info_list);
+    socket.emit(`players-info-${table_uuid}`, player_info_list);
 
     res.json({ success: true });
   }

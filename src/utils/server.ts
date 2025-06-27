@@ -16,5 +16,3 @@ export function getLocalIpAddress(): string {
 
   return '127.0.0.1'; // fallback
 }
-
-console.log(getLocalIpAddress());

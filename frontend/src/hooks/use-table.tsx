@@ -6,8 +6,8 @@ import type { Table, Team, TeamPlayer } from '@/lib/types';
 
 interface TeamInfo {
   teamId: number;
-  liveMemberNum: number;
   matchElims: number;
+  liveMemberNum: number;
 }
 
 export const useTable = (uuid: string) => {
@@ -42,23 +42,27 @@ export const useTable = (uuid: string) => {
   }, [uuid]);
 
   useEffect(() => {
-    socket.on('teamInfo', (data: TeamInfo) => {
+    socket.on(`team-info-${uuid}`, (data: TeamInfo[]) => {
       setTeams(prev => {
         return prev
-          .map(team =>
-            team.teamId === data.teamId
-              ? {
-                  ...team,
-                  points: team.points + (data.matchElims - team.matchElims),
-                  matchElims: data.matchElims,
-                }
-              : team
-          )
+          .map(team => {
+            const teamInfo = data.find(teamInfo => teamInfo.teamId === team.teamId);
+            if (teamInfo) {
+              return {
+                ...team,
+                points: team.points + (teamInfo.matchElims - team.matchElims),
+                matchElims: teamInfo.matchElims,
+                eliminated: teamInfo.liveMemberNum === 0,
+              };
+            }
+            return undefined;
+          })
+          .filter(team => team !== undefined)
           .sort((a, b) => b.points - a.points);
       });
     });
 
-    socket.on('playersInfo', (data: TeamPlayer[]) => {
+    socket.on(`players-info-${uuid}`, (data: TeamPlayer[]) => {
       setTeamPlayers(
         data.sort((a, b) => {
           if (a.bHasDied && !b.bHasDied) return 1;
@@ -69,7 +73,7 @@ export const useTable = (uuid: string) => {
         })
       );
     });
-  }, []);
+  }, [uuid]);
 
   return { table, teams, teamPlayers };
 };

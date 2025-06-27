@@ -11,6 +11,7 @@ export interface Team {
   tag: string;
   matchElims: number;
   points: number;
+  eliminated: boolean;
 }
 
 export interface TeamPoint {

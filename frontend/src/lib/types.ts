@@ -7,6 +7,7 @@ export interface Table {
 export interface Team {
   tableId: number;
   teamId: number;
+  rank: number;
   name: string;
   tag: string;
   matchElims: number;
@@ -22,8 +23,17 @@ export interface TeamPoint {
 
 export interface TeamPlayer {
   teamId: number;
+  rank: number; // team rank
   uID: number;
   health: number;
   liveState: number; // 0: knocked, 1: alive
   bHasDied: boolean; // true: dead, false: alive
+}
+
+export interface TeamEliminated {
+  tableUUID: string;
+  teamId: number;
+  teamName: string;
+  matchElims: number;
+  rank: number;
 }

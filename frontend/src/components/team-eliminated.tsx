@@ -23,7 +23,7 @@ const TeamEliminated = ({ show, placement }: TeamEliminatedProps) => {
             initial={{ x: '-100%' }}
             animate={{ x: 0 }}
             exit={{ x: '-100%', opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 80, damping: 15, duration: 0.3 }}
+            transition={{ type: 'keyframes', duration: 0.3 }}
             style={{
               position: 'absolute',
               width: '100%',
@@ -39,19 +39,19 @@ const TeamEliminated = ({ show, placement }: TeamEliminatedProps) => {
             }}
           >
             <motion.span
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ delay: 0.3, duration: 0.3 }}
+              initial={{ x: '-100%', opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: '-100%', opacity: 0 }}
+              transition={{ delay: 0.2, duration: 0.3, type: 'keyframes', ease: 'easeInOut' }}
               style={{ fontSize: '18px', fontWeight: 'bold', color: 'black' }}
             >
               #{placement}
             </motion.span>
             <motion.span
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ delay: 0.4, duration: 0.3 }}
+              initial={{ y: '100%', opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: '100%', opacity: 0 }}
+              transition={{ delay: 0.2, duration: 0.3, type: 'keyframes', ease: 'easeInOut' }}
               style={{ fontSize: '18px', fontWeight: 'bold', color: 'black' }}
             >
               ELIMINATED

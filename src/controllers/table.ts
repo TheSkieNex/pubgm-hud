@@ -30,7 +30,6 @@ interface TeamsInfoRequest {
   team_info_list: {
     teamId: number;
     killNum: number;
-    liveMemberNum: number;
   }[];
 }
 
@@ -42,6 +41,7 @@ interface PlayersInfoRequest {
     health: number;
     liveState: number;
     bHasDied: boolean;
+    rank: number;
   }[];
 }
 class TableController {
@@ -127,6 +127,25 @@ class TableController {
   }
 
   @errorHandler()
+  static async check(req: Request, res: Response): Promise<void> {
+    const { uuid } = req.params;
+
+    if (!uuid) {
+      res.status(400).json({ error: 'UUID is required' });
+      return;
+    }
+
+    const dbTable = await db.select().from(table).where(eq(table.uuid, uuid));
+
+    if (dbTable.length === 0) {
+      res.status(404).json({ error: 'Table not found' });
+      return;
+    }
+
+    res.json({ success: true });
+  }
+
+  @errorHandler()
   static async teamsInfo(req: Request, res: Response): Promise<void> {
     const { table_uuid, team_info_list } = req.body as TeamsInfoRequest;
 
@@ -142,7 +161,7 @@ class TableController {
     const teamsData = [];
 
     for (const teamInfo of team_info_list) {
-      const { teamId, killNum, liveMemberNum } = teamInfo;
+      const { teamId, killNum } = teamInfo;
 
       const dbTeam = await db
         .select()
@@ -168,20 +187,11 @@ class TableController {
           .where(eq(teamPoint.teamId, dbTeam[0].id));
 
         await db.update(team).set({ matchElims: killNum }).where(eq(team.teamId, teamId));
-
-        if (liveMemberNum === 0) {
-          socket.emit(`team-eliminated-${table_uuid}`, {
-            teamId,
-            matchElims: killNum,
-            logoUrl: path.join(Config.STATIC_DIR, 'tables', table_uuid, `${teamId}.png`),
-          });
-        }
       }
 
       teamsData.push({
         teamId,
         matchElims: killNum,
-        liveMemberNum,
       });
     }
 
@@ -224,7 +234,38 @@ class TableController {
       return;
     }
 
+    const playersByTeam = new Map<number, typeof player_info_list>();
+
+    for (const player of player_info_list) {
+      if (!playersByTeam.has(player.teamId)) {
+        playersByTeam.set(player.teamId, []);
+      }
+      playersByTeam.get(player.teamId)!.push(player);
+    }
+
+    const eliminatedTeams = [];
+
+    for (const [teamId, players] of playersByTeam) {
+      const allPlayersDead = players.every(player => player.bHasDied === true);
+      if (allPlayersDead) {
+        const dbTeam = await db.select().from(team).where(eq(team.teamId, teamId));
+        if (dbTeam.length === 0) continue;
+
+        eliminatedTeams.push({
+          tableUUID: table_uuid,
+          teamId: dbTeam[0].teamId,
+          teamName: dbTeam[0].name,
+          matchElims: dbTeam[0].matchElims,
+          rank: players[0].rank,
+        });
+      }
+    }
+
     socket.emit(`players-info-${table_uuid}`, player_info_list);
+
+    if (eliminatedTeams.length > 0) {
+      socket.emit(`team-eliminated-${table_uuid}`, eliminatedTeams);
+    }
 
     res.json({ success: true });
   }

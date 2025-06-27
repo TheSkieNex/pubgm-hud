@@ -1,0 +1,73 @@
+import { useEffect, useState, useRef } from 'react';
+import { useParams } from 'react-router-dom';
+
+import { API_BASE_URL, socket } from '@/lib/api';
+import type { TeamEliminated } from '@/lib/types';
+
+export const useElimination = () => {
+  const { uuid } = useParams();
+
+  const animationInProgress = useRef(false);
+  const queueRef = useRef<TeamEliminated[]>([]);
+  const eliminatedTeamsRef = useRef<Set<string>>(new Set());
+
+  const [tableExists, setTableExists] = useState(false);
+  const [eliminatedTeam, setEliminatedTeam] = useState<TeamEliminated | null>(null);
+
+  useEffect(() => {
+    const checkTable = async () => {
+      const response = await fetch(`${API_BASE_URL}/api/table/${uuid}/check`);
+      const data = await response.json();
+      if (data.success) {
+        setTableExists(true);
+      }
+    };
+    checkTable();
+  }, [uuid]);
+
+  useEffect(() => {
+    socket.on(`team-eliminated-${uuid}`, (data: TeamEliminated[]) => {
+      data
+        .sort((a, b) => b.rank - a.rank)
+        .forEach(team => {
+          const teamKey = `${team.teamId}-${team.rank}`;
+
+          if (eliminatedTeamsRef.current.has(teamKey)) {
+            return;
+          }
+
+          eliminatedTeamsRef.current.add(teamKey);
+          queueRef.current.push(team);
+
+          if (!animationInProgress.current) {
+            processNextTeam();
+          }
+        });
+    });
+  }, [uuid]);
+
+  const processNextTeam = async () => {
+    if (queueRef.current.length === 0 || animationInProgress.current) {
+      return;
+    }
+
+    animationInProgress.current = true;
+    const nextTeam = queueRef.current.shift()!;
+
+    setEliminatedTeam(nextTeam);
+
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    setEliminatedTeam(null);
+
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    animationInProgress.current = false;
+
+    if (queueRef.current.length > 0) {
+      processNextTeam();
+    }
+  };
+
+  return { tableExists, eliminatedTeam };
+};

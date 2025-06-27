@@ -5,36 +5,6 @@ import { cn } from '@/lib/utils';
 import TeamEliminated from './team-eliminated';
 import { useEffect, useState } from 'react';
 
-interface TableProps {
-  table: Table;
-  teams: Team[];
-  teamPlayers: TeamPlayer[];
-}
-
-export const TableComponent = ({ table, teams, teamPlayers }: TableProps) => {
-  return (
-    <div className="w-[344px]">
-      <HeaderComponent />
-      <div className="flex flex-col">
-        {teams.map((team, index) => (
-          <TeamComponent
-            key={team.teamId}
-            id={index + 1}
-            teamId={team.teamId}
-            tableUUID={table.uuid}
-            tag={team.tag}
-            points={team.points}
-            elims={team.matchElims}
-            teamPlayers={teamPlayers.filter(player => player.teamId === team.teamId)}
-            eliminated={team.eliminated}
-          />
-        ))}
-      </div>
-      <FooterComponent />
-    </div>
-  );
-};
-
 const HeaderComponent = () => {
   return (
     <div className="w-full h-[30px] flex bg-table-secondary text-white text-xs font-bold">
@@ -56,6 +26,7 @@ interface TeamProps {
   elims: number;
   teamPlayers: TeamPlayer[];
   eliminated: boolean;
+  rank: number;
 }
 
 const TeamComponent = ({
@@ -67,6 +38,7 @@ const TeamComponent = ({
   elims,
   teamPlayers,
   eliminated,
+  rank,
 }: TeamProps) => {
   const [showEliminated, setShowEliminated] = useState(false);
   const [animationFinished, setAnimationFinished] = useState(false);
@@ -88,7 +60,7 @@ const TeamComponent = ({
     <div className="w-full h-[42px] flex border-b border-[#EDE9F7] font-circular relative">
       {eliminated && (
         <>
-          <TeamEliminated show={showEliminated} placement={id} />
+          <TeamEliminated show={showEliminated} placement={rank} />
           {animationFinished && (
             <div className="w-full h-full bg-black/50 absolute top-0 left-0"></div>
           )}
@@ -146,6 +118,37 @@ const FooterComponent = () => {
         <div className="w-[8px] h-[8px] bg-table-dark-light rounded-[2px]"></div>
         <p className="ml-1">ELIMINATED</p>
       </div>
+    </div>
+  );
+};
+
+interface TableProps {
+  table: Table;
+  teams: Team[];
+  teamPlayers: TeamPlayer[];
+}
+
+export const TableComponent = ({ table, teams, teamPlayers }: TableProps) => {
+  return (
+    <div className="w-[344px]">
+      <HeaderComponent />
+      <div className="flex flex-col">
+        {teams.map((team, index) => (
+          <TeamComponent
+            key={team.teamId}
+            id={index + 1}
+            teamId={team.teamId}
+            tableUUID={table.uuid}
+            tag={team.tag}
+            points={team.points}
+            elims={team.matchElims}
+            teamPlayers={teamPlayers.filter(player => player.teamId === team.teamId)}
+            eliminated={team.eliminated}
+            rank={team.rank}
+          />
+        ))}
+      </div>
+      <FooterComponent />
     </div>
   );
 };

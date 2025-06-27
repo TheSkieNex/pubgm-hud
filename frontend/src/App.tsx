@@ -4,6 +4,7 @@ import Layout from './pages/layout';
 import Page from './pages/page';
 import TablePage from './pages/table/page';
 import TablesPage from './pages/tables/page';
+import EliminationPage from './pages/elimination/page';
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
           <Route path="/" element={<Page />} />
           <Route path="/table/:uuid" element={<TablePage />} />
           <Route path="/tables" element={<TablesPage />} />
+          <Route path="/elimination/:uuid" element={<EliminationPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

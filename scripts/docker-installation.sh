@@ -106,10 +106,29 @@ add_docker_repository() {
 
 # Function to install Docker
 install_docker() {
-    print_status "Installing Docker CE..."
+    print_status "Installing Docker CE and Docker Compose..."
     sudo apt-get update
     sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-    print_success "Docker CE installed successfully"
+    print_success "Docker CE and Docker Compose plugin installed successfully"
+}
+
+# Function to install standalone Docker Compose (if needed)
+install_standalone_compose() {
+    print_status "Installing standalone Docker Compose..."
+    
+    # Download the latest version of Docker Compose
+    COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep 'tag_name' | cut -d\" -f4)
+    
+    # Download and install Docker Compose
+    sudo curl -L "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    
+    # Make it executable
+    sudo chmod +x /usr/local/bin/docker-compose
+    
+    # Create a symbolic link
+    sudo ln -sf /usr/local/bin/docker-compose /usr/bin/docker-compose
+    
+    print_success "Standalone Docker Compose ${COMPOSE_VERSION} installed successfully"
 }
 
 # Function to add user to docker group
@@ -137,8 +156,10 @@ verify_installation() {
         print_success "Docker installation verified successfully!"
         print_status "Docker version:"
         sudo docker --version
-        print_status "Docker Compose version:"
+        print_status "Docker Compose plugin version:"
         sudo docker compose version
+        print_status "Standalone Docker Compose version:"
+        sudo docker-compose --version
     else
         print_error "Docker installation verification failed!"
         exit 1
@@ -160,7 +181,18 @@ show_post_install_instructions() {
     echo "  docker ps                 # List running containers"
     echo "  docker images             # List images"
     echo "  docker system prune       # Clean up unused resources"
-    echo "  docker compose up         # Start services with docker-compose"
+    echo
+    print_status "Useful Docker Compose commands:"
+    echo "  docker compose up         # Start services with docker-compose (plugin)"
+    echo "  docker-compose up         # Start services with docker-compose (standalone)"
+    echo "  docker compose down       # Stop and remove containers"
+    echo "  docker compose ps         # List running services"
+    echo "  docker compose logs       # View service logs"
+    echo "  docker compose build      # Build service images"
+    echo
+    print_status "Docker Compose versions installed:"
+    echo "  - Docker Compose Plugin (docker compose) - integrated with Docker CLI"
+    echo "  - Standalone Docker Compose (docker-compose) - traditional version"
     echo
 }
 
@@ -192,6 +224,7 @@ main() {
     add_docker_gpg_key
     add_docker_repository
     install_docker
+    install_standalone_compose
     start_docker_service
     add_user_to_docker_group
     verify_installation

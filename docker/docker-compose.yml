@@ -1,3 +1,5 @@
+name: pubgm-hud
+
 services:
   api:
     build:
@@ -23,3 +25,7 @@ services:
       - 443:443
     depends_on:
       - api
+    volumes:
+      - ../.env:/pubgm-hud/.env
+    environment:
+      - DOMAIN=${DOMAIN:-localhost}

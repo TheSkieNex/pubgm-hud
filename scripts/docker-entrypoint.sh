@@ -6,6 +6,7 @@ if [ -f /pubgm-hud/.env ]; then
 else
     # Set default values if .env doesn't exist
     DOMAIN=${DOMAIN:-localhost}
+    EMAIL=${EMAIL:-your-email@example.com}
 fi
 set +a
 
@@ -25,7 +26,7 @@ if [ "$DOMAIN" != "localhost" ] && [ "$DOMAIN" != "127.0.0.1" ]; then
     # Check if certificate already exists
     if [ ! -f "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ]; then
         echo "Certificate not found. Generating new certificate..."
-        certbot certonly --webroot -w /var/www/certbot -d "$DOMAIN" -d "api.$DOMAIN" --non-interactive --agree-tos --email admin@$DOMAIN
+        certbot certonly --standalone --non-interactive --agree-tos --email $EMAIL -d $DOMAIN -d api.$DOMAIN
     else
         echo "Certificate already exists. Renewing if necessary..."
         certbot renew --quiet

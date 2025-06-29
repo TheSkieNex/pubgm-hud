@@ -10,9 +10,6 @@ else
 fi
 set +a
 
-# Create certbot webroot directory
-mkdir -p /var/www/certbot
-
 # Generate nginx configuration
 envsubst '$DOMAIN' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
 

@@ -14,7 +14,7 @@ import db from '../db';
 
 import { lottieFile, lottieLayer } from '../db/schemas/lottie-file';
 import { errorHandler } from '../lib/decorators/error-handler';
-import { prepareLottieBuildSource, copyLottieTemplates } from '../lib/utils';
+import { prepareLottieBuildSource, copyLottieTemplates, updateLottieLayer } from '../lib/utils';
 import { getLayersData } from '../utils/lottie-sync';
 
 interface UploadRequest {
@@ -126,13 +126,6 @@ class LottieSyncController {
       })
       .returning();
 
-    await db.insert(lottieLayer).values(
-      layers.map(layerIndex => ({
-        fileId: dbLottieFile[0].id,
-        layerIndex,
-      }))
-    );
-
     const destDirPath = path.join(Config.LOTTIE_SYNC_DIR_PATH, dbLottieFile[0].uuid);
     await fs.mkdir(destDirPath, { recursive: true });
 
@@ -166,6 +159,25 @@ class LottieSyncController {
       await fs.writeFile(destFilePath, buffer);
     }
 
+    await db.insert(lottieLayer).values(
+      layers
+        .map(layerIndex => {
+          const layerData = jsonData.layers.find(l => l.ind === layerIndex);
+
+          if (!layerData) {
+            res.status(404).json({ error: 'Not found' });
+            return;
+          }
+
+          return {
+            name: layerData.nm,
+            fileId: dbLottieFile[0].id,
+            layerIndex,
+          };
+        })
+        .filter(layer => layer !== undefined)
+    );
+
     await copyLottieTemplates(destDirPath);
 
     res.send('ok');
@@ -191,14 +203,27 @@ class LottieSyncController {
       await db.update(lottieFile).set({ name: fileName }).where(eq(lottieFile.uuid, uuid));
     }
 
+    const lottieFileDirPath = path.join(Config.LOTTIE_SYNC_DIR_PATH, dbLottieFile[0].uuid);
+
+    const lottieJsonPath = path.join(lottieFileDirPath, 'data.json');
+    const lottieJson: LottieJson = JSON.parse(await fs.readFile(lottieJsonPath, 'utf-8'));
+
     const prevFileLayers = await db
       .select()
       .from(lottieLayer)
       .where(eq(lottieLayer.fileId, dbLottieFile[0].id));
 
     const newFileLayers = selectedLayers.map(layer => {
+      const layerData = lottieJson.layers.find(l => l.ind === layer);
+
+      if (!layerData) {
+        res.status(404).json({ error: 'Not found' });
+        return;
+      }
+
       return {
         fileId: dbLottieFile[0].id,
+        name: layerData.nm,
         layerIndex: layer,
       };
     });
@@ -217,13 +242,8 @@ class LottieSyncController {
     }
 
     if (newFileLayers.length > 0) {
-      await db.insert(lottieLayer).values(newFileLayers);
+      await db.insert(lottieLayer).values(newFileLayers.filter(layer => layer !== undefined));
     }
-
-    const lottieFileDirPath = path.join(Config.LOTTIE_SYNC_DIR_PATH, dbLottieFile[0].uuid);
-
-    const lottieJsonPath = path.join(lottieFileDirPath, 'data.json');
-    const lottieJson: LottieJson = JSON.parse(await fs.readFile(lottieJsonPath, 'utf-8'));
 
     for (const updatedLayer of updatedLayers) {
       const actualLayer = lottieJson.layers.find(layer => layer.ind === updatedLayer.index);
@@ -459,40 +479,46 @@ class LottieSyncController {
       return;
     }
 
-    const lottieJsonPath = path.join(Config.LOTTIE_SYNC_DIR_PATH, uuid, 'data.json');
-    const lottieJsonFile = await fs.readFile(lottieJsonPath, 'utf-8');
-    const lottieJson: LottieJson = JSON.parse(lottieJsonFile);
+    // const lottieJsonPath = path.join(Config.LOTTIE_SYNC_DIR_PATH, uuid, 'data.json');
+    // const lottieJsonFile = await fs.readFile(lottieJsonPath, 'utf-8');
+    // const lottieJson: LottieJson = JSON.parse(lottieJsonFile);
 
-    const layer = lottieJson.layers.find(layer => layer.ind === Number(layerIndex));
+    // const layer = lottieJson.layers.find(layer => layer.ind === Number(layerIndex));
 
-    if (!layer) {
+    // if (!layer) {
+    //   res.status(404).json({ error: 'Not found' });
+    //   return;
+    // }
+
+    // if (layer.ty === 5 && layer.t) {
+    //   layer.t.d.k[0].s.t = value;
+    // } else if (layer.ty === 2 && layer.refId) {
+    //   const asset = lottieJson.assets?.find(a => a.id === layer.refId);
+    //   if (!asset) {
+    //     res.status(404).json({ error: 'Not found' });
+    //     return;
+    //   }
+
+    //   if (isLottieAssetImage(asset)) {
+    //     const imageName = asset.p.split('/').pop();
+    //     if (!imageName) {
+    //       res.status(404).json({ error: 'Not found' });
+    //       return;
+    //     }
+
+    //     const imagePath = path.join(Config.LOTTIE_SYNC_DIR_PATH, uuid, 'assets', imageName);
+    //     const buffer = Buffer.from(value, 'base64');
+    //     await fs.writeFile(imagePath, buffer);
+    //   }
+    // }
+
+    // await fs.writeFile(lottieJsonPath, JSON.stringify(lottieJson));
+    const updatedLottieLayer = await updateLottieLayer(uuid, layerIndex, value);
+
+    if (!updatedLottieLayer) {
       res.status(404).json({ error: 'Not found' });
       return;
     }
-
-    if (layer.ty === 5 && layer.t) {
-      layer.t.d.k[0].s.t = value;
-    } else if (layer.ty === 2 && layer.refId) {
-      const asset = lottieJson.assets?.find(a => a.id === layer.refId);
-      if (!asset) {
-        res.status(404).json({ error: 'Not found' });
-        return;
-      }
-
-      if (isLottieAssetImage(asset)) {
-        const imageName = asset.p.split('/').pop();
-        if (!imageName) {
-          res.status(404).json({ error: 'Not found' });
-          return;
-        }
-
-        const imagePath = path.join(Config.LOTTIE_SYNC_DIR_PATH, uuid, 'assets', imageName);
-        const buffer = Buffer.from(value, 'base64');
-        await fs.writeFile(imagePath, buffer);
-      }
-    }
-
-    await fs.writeFile(lottieJsonPath, JSON.stringify(lottieJson));
 
     res.json({ message: 'Layer updated successfully' });
   }

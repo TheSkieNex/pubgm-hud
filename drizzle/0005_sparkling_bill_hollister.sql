@@ -1,0 +1,1 @@
+ALTER TABLE `table` ADD `large_logo_size` integer NOT NULL;

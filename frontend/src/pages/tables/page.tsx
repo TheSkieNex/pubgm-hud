@@ -17,7 +17,7 @@ export default function TablesPage() {
 
   useEffect(() => {
     const fetchTables = async () => {
-      const res = await fetch(`${API_BASE_URL}/api/table`);
+      const res = await fetch(`${API_BASE_URL}/api/tables`);
       const data = await res.json();
       setTables(data);
     };
@@ -46,6 +46,10 @@ export default function TablesPage() {
                 <EllipsisVertical size={16} />
               </DropdownMenuTrigger>
               <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => handleCopy(table.uuid)}>
+                  <Clipboard size={16} />
+                  Copy UUID
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => handleCopy(`${window.location.origin}/elimination/${table.uuid}`)}
                 >

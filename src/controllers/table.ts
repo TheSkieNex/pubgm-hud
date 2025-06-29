@@ -16,12 +16,14 @@ import { table, team, teamPoint } from '../db/schemas/table';
 interface InitRequest {
   table: {
     name: string;
+    large_logo_size: number;
   };
   teams: {
     id: number;
     name: string;
     tag: string;
     logo_data: string;
+    large_logo_data: string;
   }[];
 }
 
@@ -54,11 +56,15 @@ class TableController {
       .values({
         uuid: crypto.randomUUID(),
         name: tableData.name,
+        largeLogoSize: tableData.large_logo_size,
       })
       .returning();
 
     const tableDirPath = path.join(Config.STATIC_DIR, 'tables', dbTable[0].uuid);
     await fs.mkdir(tableDirPath, { recursive: true });
+
+    const largeLogoDirPath = path.join(tableDirPath, `${tableData.large_logo_size}x${tableData.large_logo_size}`);
+    await fs.mkdir(largeLogoDirPath, { recursive: true });
 
     for (const teamData of teamsData) {
       const dbTeam = await db
@@ -74,6 +80,10 @@ class TableController {
       const logoPath = path.join(tableDirPath, `${teamData.id}.png`);
       const base64Data = teamData.logo_data.replace(/^data:image\/\w+;base64,/, '');
       await fs.writeFile(logoPath, Buffer.from(base64Data, 'base64'));
+
+      const largeLogoPath = path.join(largeLogoDirPath, `${teamData.id}.png`);
+      const largeBase64Data = teamData.large_logo_data.replace(/^data:image\/\w+;base64,/, '');
+      await fs.writeFile(largeLogoPath, Buffer.from(largeBase64Data, 'base64'));
 
       await db.insert(teamPoint).values({
         tableId: dbTable[0].id,
@@ -266,6 +276,27 @@ class TableController {
     if (eliminatedTeams.length > 0) {
       socket.emit(`team-eliminated-${table_uuid}`, eliminatedTeams);
     }
+
+    res.json({ success: true });
+  }
+
+  @errorHandler()
+  static async delete(req: Request, res: Response): Promise<void> {
+    const { uuid } = req.params;
+
+    if (!uuid) {
+      res.status(400).json({ error: 'UUID is required' });
+      return;
+    }
+
+    const dbTable = await db.select().from(table).where(eq(table.uuid, uuid));
+
+    if (dbTable.length === 0) {
+      res.status(404).json({ error: 'Table not found' });
+      return;
+    }
+
+    await db.delete(table).where(eq(table.uuid, uuid));
 
     res.json({ success: true });
   }

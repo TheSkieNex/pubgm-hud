@@ -15,6 +15,7 @@ export const lottieFile = sqliteTable('lottie_files', {
 
 export const lottieLayer = sqliteTable('lottie_layers', {
   id: integer().primaryKey(),
+  name: text('name').notNull(),
   fileId: integer('file_id')
     .notNull()
     .references(() => lottieFile.id, {

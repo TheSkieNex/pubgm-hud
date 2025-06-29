@@ -14,7 +14,7 @@ interface TableResponse {
 }
 
 export const fetchTable = async (uuid: string): Promise<TableResponse> => {
-  const res = await fetch(`${API_BASE_URL}/api/table/${uuid}`);
+  const res = await fetch(`${API_BASE_URL}/api/tables/${uuid}`);
   const data = await res.json();
   return {
     table: data.table,

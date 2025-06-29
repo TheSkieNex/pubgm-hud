@@ -27,5 +27,6 @@ services:
       - api
     volumes:
       - ../.env:/pubgm-hud/.env
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     environment:
       - DOMAIN=${DOMAIN:-localhost}

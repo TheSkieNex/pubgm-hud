@@ -13,8 +13,8 @@ set +a
 # Generate nginx configuration
 envsubst '$DOMAIN' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
 
-# Start nginx in background
-nginx
+# Kill any existing nginx processes (just in case)
+pkill nginx 2>/dev/null
 
 # Generate SSL certificate if DOMAIN is not localhost
 if [ "$DOMAIN" != "localhost" ] && [ "$DOMAIN" != "127.0.0.1" ]; then
@@ -33,5 +33,5 @@ if [ "$DOMAIN" != "localhost" ] && [ "$DOMAIN" != "127.0.0.1" ]; then
     nginx -s reload
 fi
 
-# Keep container running
-exec "$@"
+# Start nginx in the foreground (this keeps the container running)
+exec nginx -g 'daemon off;'

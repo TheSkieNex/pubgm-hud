@@ -19,7 +19,6 @@ ENV NODE_ENV=production
 RUN npm run db:generate
 RUN npm run db:push
 
-
 RUN npm run build
 
 CMD ["npm", "run", "prod"]

@@ -13,7 +13,6 @@ services:
       - 3011:3011
     volumes:
       - ../.env:/pubgm-hud/.env
-      - ../drizzle.config.ts:/pubgm-hud/drizzle.config.ts
 
   frontend:
     build:

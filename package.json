@@ -12,6 +12,7 @@
     "lint": "eslint .",
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
     "empty-tables": "tsx scripts/empty-tables.ts",
     "reset-elims": "tsx scripts/reset-elims.ts"
   },

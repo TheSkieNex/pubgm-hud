@@ -12,6 +12,8 @@ COPY package.json .
 
 RUN npm install
 
+RUN npm run db:
+
 COPY . .
 
 RUN npm run build

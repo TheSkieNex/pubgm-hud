@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { API_BASE_URL, socket } from '@/lib/api';
+import { API_URL, socket } from '@/lib/api';
 import type { TeamEliminated } from '@/lib/types';
 
 export const useElimination = () => {
@@ -16,7 +16,7 @@ export const useElimination = () => {
 
   useEffect(() => {
     const checkTable = async () => {
-      const response = await fetch(`${API_BASE_URL}/api/table/${uuid}/check`);
+      const response = await fetch(`${API_URL}/tables/${uuid}/check`);
       const data = await response.json();
       if (data.success) {
         setTableExists(true);

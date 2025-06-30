@@ -3,7 +3,7 @@ import { EllipsisVertical, Clipboard } from 'lucide-react';
 import { toast } from 'sonner';
 
 import type { Table } from '@/lib/types';
-import { API_BASE_URL } from '@/lib/api';
+import { API_URL } from '@/lib/api';
 
 import {
   DropdownMenu,
@@ -17,7 +17,7 @@ export default function TablesPage() {
 
   useEffect(() => {
     const fetchTables = async () => {
-      const res = await fetch(`${API_BASE_URL}/api/tables`);
+      const res = await fetch(`${API_URL}/tables`);
       const data = await res.json();
       setTables(data);
     };

@@ -23,7 +23,7 @@ if [ "$DOMAIN" != "localhost" ] && [ "$DOMAIN" != "127.0.0.1" ]; then
     # Check if certificate already exists
     if [ ! -f "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ]; then
         echo "Certificate not found. Generating new certificate..."
-        certbot certonly --standalone --non-interactive --agree-tos --email $EMAIL -d $DOMAIN -d api.$DOMAIN
+        certbot certonly --standalone --non-interactive --agree-tos --email $EMAIL -d $DOMAIN
     else
         echo "Certificate already exists. Renewing if necessary..."
         certbot renew --quiet

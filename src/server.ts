@@ -35,7 +35,7 @@ app.use(express.static(Config.STATIC_DIR));
 app.use('/lottie-sync', express.static(Config.LOTTIE_SYNC_DIR_PATH));
 app.use('/tables', express.static(Config.TABLES_DIR));
 
-app.use('/api', router);
+app.use('/router', router);
 
 server.listen(Config.PORT, '0.0.0.0', () => {
   logger.info(`Server is running on http://${localIpAddress}:${Config.PORT}`);

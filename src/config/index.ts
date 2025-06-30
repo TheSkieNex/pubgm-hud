@@ -10,9 +10,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 class Config {
   public static readonly PORT = Number(process.env.PORT) || 3011;
-  public static readonly HOST = isProduction
-    ? `${process.env.HOST}/api`
-    : `http://${localIpAddress}:${this.PORT}`;
+  public static readonly HOST = process.env.HOST || `http://${localIpAddress}:${this.PORT}`;
   public static readonly ALLOWED_ORIGINS =
     process.env.ALLOWED_ORIGINS && process.env.ALLOWED_ORIGINS.length > 0
       ? process.env.ALLOWED_ORIGINS.split(',')

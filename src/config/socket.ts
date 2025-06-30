@@ -6,7 +6,7 @@ let io: Server;
 
 export function initSocket(server: HttpServer) {
   io = new Server(server, {
-    path: '/api/socket.io',
+    path: '/socket.io',
     cors: { origin: true },
   });
 }

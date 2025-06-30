@@ -12,9 +12,9 @@ COPY package*.json ./
 
 RUN npm install
 
-COPY . .
-
 ENV NODE_ENV=production
+
+COPY . .
 
 RUN npm run db:generate
 RUN npm run db:push

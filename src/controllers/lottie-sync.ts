@@ -164,24 +164,26 @@ class LottieSyncController {
       await fs.writeFile(destFilePath, buffer);
     }
 
-    await db.insert(lottieLayer).values(
-      layers
-        .map(layerIndex => {
-          const layerData = jsonData.layers.find(l => l.ind === layerIndex);
-
-          if (!layerData) {
-            res.status(404).json({ error: 'Not found' });
-            return;
-          }
-
-          return {
-            name: layerData.nm,
-            fileId: dbLottieFile[0].id,
-            layerIndex,
-          };
-        })
-        .filter(layer => layer !== undefined)
-    );
+    if (layers.length > 0) {
+      await db.insert(lottieLayer).values(
+        layers
+          .map(layerIndex => {
+            const layerData = jsonData.layers.find(l => l.ind === layerIndex);
+  
+            if (!layerData) {
+              res.status(404).json({ error: 'Not found' });
+              return;
+            }
+  
+            return {
+              name: layerData.nm,
+              fileId: dbLottieFile[0].id,
+              layerIndex,
+            };
+          })
+          .filter(layer => layer !== undefined)
+      );
+    }
 
     await copyLottieTemplates(destDirPath);
 

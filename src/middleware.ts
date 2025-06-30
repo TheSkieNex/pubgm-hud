@@ -13,7 +13,7 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction):
       next();
       return;
     }
-  
+
     if (accessKey !== Config.ACCESS_KEY) {
       res.status(401).json({ message: 'Unauthorized' });
       return;

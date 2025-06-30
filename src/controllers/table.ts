@@ -63,7 +63,10 @@ class TableController {
     const tableDirPath = path.join(Config.STATIC_DIR, 'tables', dbTable[0].uuid);
     await fs.mkdir(tableDirPath, { recursive: true });
 
-    const largeLogoDirPath = path.join(tableDirPath, `${tableData.large_logo_size}x${tableData.large_logo_size}`);
+    const largeLogoDirPath = path.join(
+      tableDirPath,
+      `${tableData.large_logo_size}x${tableData.large_logo_size}`
+    );
     await fs.mkdir(largeLogoDirPath, { recursive: true });
 
     for (const teamData of teamsData) {

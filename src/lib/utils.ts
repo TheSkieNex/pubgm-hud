@@ -1,7 +1,11 @@
 import path from 'node:path';
 import fs from 'node:fs/promises';
 
+import { and, eq } from 'drizzle-orm';
+
 import Config from '../config';
+import db from '../db';
+import { lottieLayer } from '../db/schemas/lottie-file';
 import { isLottieAssetImage } from './lottie';
 import { LottieJson } from './lottie';
 
@@ -67,4 +71,48 @@ export async function updateLottieLayer(uuid: string, layerIndex: number, value:
   await fs.writeFile(lottieJsonPath, JSON.stringify(lottieJson));
 
   return lottieJson;
+}
+
+export async function toggleLottieLayer(
+  lottieJsonPath: string,
+  lottieJson: LottieJson,
+  dbLottieFileId: number,
+  layerIndex: number
+) {
+  const dbLayer = await db
+    .select()
+    .from(lottieLayer)
+    .where(
+      and(eq(lottieLayer.fileId, dbLottieFileId), eq(lottieLayer.layerIndex, Number(layerIndex)))
+    );
+
+  if (dbLayer.length === 0) {
+    return null;
+  }
+
+  const layer = lottieJson.layers.find(layer => layer.ind === Number(layerIndex));
+
+  if (!layer) {
+    return null;
+  }
+
+  // In point is the layer's start time, out point is the layer's end time.
+  // To toggle the layer, we use layer's out point, we set it to the layer's in point for the layer to be invisible.
+  // And we save the previous out point in the database, in order to restore the layer's visibility back to its original state.
+  // 'Visible' layer wouldn't have the same out point as the in point.
+
+  const outPoint = layer.op === layer.ip ? dbLayer[0].outPoint : layer.ip;
+
+  await db.update(lottieLayer).set({ outPoint: layer.op }).where(eq(lottieLayer.id, dbLayer[0].id));
+
+  lottieJson.layers = lottieJson.layers.map(layer => {
+    if (layer.ind === Number(layerIndex)) {
+      return { ...layer, op: outPoint };
+    }
+    return layer;
+  });
+
+  await fs.writeFile(lottieJsonPath, JSON.stringify(lottieJson));
+
+  return outPoint;
 }

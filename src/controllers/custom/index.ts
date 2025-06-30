@@ -52,12 +52,35 @@ class CustomController {
       return;
     }
 
-    const teamLogoPath = path.join(Config.STATIC_DIR, 'tables', dbTable[0].uuid, `${dbTable[0].largeLogoSize}x${dbTable[0].largeLogoSize}`, `${team.id}.png`);
+    const teamLogoPath = path.join(
+      Config.STATIC_DIR,
+      'tables',
+      dbTable[0].uuid,
+      `${dbTable[0].largeLogoSize}x${dbTable[0].largeLogoSize}`,
+      `${team.id}.png`
+    );
     const teamLogo = await fs.readFile(teamLogoPath);
     const teamLogoBase64 = teamLogo.toString('base64');
 
+    // TEAM LOGO
     const teamLogoLayer = dbLottieLayers.find(layer => layer.name === 'LOGO');
     await updateLottieLayer(file_uuid, teamLogoLayer!.layerIndex, teamLogoBase64);
+
+    // TEAM NAME
+    const teamNameLayer = dbLottieLayers.find(layer => layer.name === 'TEAM NAME');
+    await updateLottieLayer(file_uuid, teamNameLayer!.layerIndex, dbTeamData[0].name);
+
+    if (team.players.length === 4) {
+      for (const [index, player] of team.players.entries()) {
+        const playerIndex = index + 1;
+
+        // PLAYER NAME
+        const playerNameLayer = dbLottieLayers.find(
+          layer => layer.name === `PLAYER_NAME_${playerIndex}`
+        );
+        await updateLottieLayer(file_uuid, playerNameLayer!.layerIndex, player.name);
+      }
+    }
 
     res.status(200).json({ message: 'Success' });
   }

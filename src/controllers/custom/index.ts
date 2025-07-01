@@ -63,11 +63,11 @@ class CustomController {
     const teamLogoBase64 = teamLogo.toString('base64');
 
     // TEAM LOGO
-    const teamLogoLayer = dbLottieLayers.find(layer => layer.name === 'LOGO');
+    const teamLogoLayer = dbLottieLayers.find(layer => layer.name === 'TEAM_LOGO');
     await updateLottieLayer(file_uuid, teamLogoLayer!.layerIndex, teamLogoBase64);
 
     // TEAM NAME
-    const teamNameLayer = dbLottieLayers.find(layer => layer.name === 'TEAM NAME');
+    const teamNameLayer = dbLottieLayers.find(layer => layer.name === 'TEAM_NAME');
     await updateLottieLayer(file_uuid, teamNameLayer!.layerIndex, dbTeamData[0].name);
 
     if (team.players.length === 4) {

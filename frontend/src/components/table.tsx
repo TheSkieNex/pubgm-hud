@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '@/lib/api';
+import { API_URL } from '@/lib/api';
 import type { Table, Team, TeamPlayer } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
@@ -84,7 +84,7 @@ const TeamComponent = ({
         <div className="w-[42px] h-full flex items-center justify-center">
           <div
             className="w-7 h-7 bg-contain bg-center bg-no-repeat"
-            style={{ backgroundImage: `url(${API_BASE_URL}/tables/${tableUUID}/${teamId}.png)` }}
+            style={{ backgroundImage: `url(${API_URL}/tables/${tableUUID}/${teamId}.png)` }}
           ></div>
         </div>
         <div className="ml-2 font-bold">{tag.toUpperCase()}</div>

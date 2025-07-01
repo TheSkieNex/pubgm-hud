@@ -169,12 +169,12 @@ class LottieSyncController {
         layers
           .map(layerIndex => {
             const layerData = jsonData.layers.find(l => l.ind === layerIndex);
-  
+
             if (!layerData) {
               res.status(404).json({ error: 'Not found' });
               return;
             }
-  
+
             return {
               name: layerData.nm,
               fileId: dbLottieFile[0].id,

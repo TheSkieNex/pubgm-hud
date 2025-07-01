@@ -8,16 +8,10 @@ const logger = winston.createLogger({
   transports: [
     new winston.transports.File({ filename: 'error.log', level: 'error', dirname: Config.LOG_DIR }),
     new winston.transports.File({ filename: 'info.log', level: 'info', dirname: Config.LOG_DIR }),
-  ],
-});
-
-// For the development environment, we want to log to the console
-if (process.env.NODE_ENV !== 'production') {
-  logger.add(
     new winston.transports.Console({
       format: winston.format.simple(),
-    })
-  );
-}
+    }),
+  ],
+});
 
 export default logger;

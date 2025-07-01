@@ -68,7 +68,7 @@ class CustomController {
 
     // TEAM NAME
     const teamNameLayer = dbLottieLayers.find(layer => layer.name === 'TEAM_NAME');
-    await updateLottieLayer(file_uuid, teamNameLayer!.layerIndex, dbTeamData[0].name);
+    await updateLottieLayer(file_uuid, teamNameLayer!.layerIndex, dbTeamData[0].name.toUpperCase());
 
     if (team.players.length === 4) {
       for (const [index, player] of team.players.entries()) {

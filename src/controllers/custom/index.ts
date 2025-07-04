@@ -13,6 +13,7 @@ import { table, team as dbTeam } from '../../db/schemas/table';
 import { overallResultsPoints } from '../../db/schemas/custom';
 import { errorHandler } from '../../lib/decorators/error-handler';
 import { updateLottieLayer, toggleLottieLayer } from '../../lib/utils';
+import { LottieJson } from 'src/lib/lottie';
 
 const PLACEMENT_POINTS = {
   1: 10,
@@ -188,9 +189,18 @@ class CustomController {
     }
 
     if (team.players.length === 4) {
+      const lottieJsonPath = path.join(Config.LOTTIE_SYNC_DIR_PATH, file_uuid, 'data.json');
+      const lottieJsonFile = await fs.readFile(lottieJsonPath, 'utf-8');
+      const lottieJson: LottieJson = JSON.parse(lottieJsonFile);
+
+      const layer = lottieJson.layers.find(layer => layer.ind === 8);
+      const isHidden = layer?.op === layer?.ip;
+
       // Disabling 5th player layers, they are from 8 + 19
-      for (let i = 8; i <= 26; i++) {
-        await toggleLottieLayer(file_uuid, dbLottieFile[0].id, i, false);
+      if (isHidden) {
+        for (let i = 8; i <= 26; i++) {
+          await toggleLottieLayer(file_uuid, dbLottieFile[0].id, i, false);
+        }
       }
     }
 

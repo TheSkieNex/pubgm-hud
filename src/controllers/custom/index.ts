@@ -11,7 +11,7 @@ import { CustomUpdateWWCDTeamRequest } from './types';
 import { lottieFile, lottieLayer } from '../../db/schemas/lottie-file';
 import { table, team as dbTeam } from '../../db/schemas/table';
 import { errorHandler } from '../../lib/decorators/error-handler';
-import { updateLottieLayer } from '../../lib/utils';
+import { updateLottieLayer, toggleLottieLayer } from '../../lib/utils';
 
 class CustomController {
   @errorHandler()
@@ -79,7 +79,45 @@ class CustomController {
           layer => layer.name === `PLAYER_NAME_${playerIndex}`
         );
         await updateLottieLayer(file_uuid, playerNameLayer!.layerIndex, player.name);
+
+        // ELIMINATIONS
+        const eliminationsLayer = dbLottieLayers.find(
+          layer => layer.name === `ELIMINATIONS_CONTENT_${playerIndex}`
+        );
+        await updateLottieLayer(
+          file_uuid,
+          eliminationsLayer!.layerIndex,
+          player.eliminations.toString()
+        );
+
+        // KNOCKOUTS
+        const knockoutsLayer = dbLottieLayers.find(
+          layer => layer.name === `KNOCKOUTS_CONTENT_${playerIndex}`
+        );
+        await updateLottieLayer(file_uuid, knockoutsLayer!.layerIndex, player.knockouts.toString());
+
+        // GRENEADES
+        const grenadesLayer = dbLottieLayers.find(
+          layer => layer.name === `GRENADES_USED_CONTENT_${playerIndex}`
+        );
+        await updateLottieLayer(
+          file_uuid,
+          grenadesLayer!.layerIndex,
+          player.granades_used.toString()
+        );
+
+        // SURVIVAL TIME
+        const survivalTimeLayer = dbLottieLayers.find(
+          layer => layer.name === `SURVIVAL_TIME_TEXT_CONTENT_${playerIndex}`
+        );
+        await updateLottieLayer(
+          file_uuid,
+          survivalTimeLayer!.layerIndex,
+          player.survival_time.toString()
+        );
       }
+    } else if (team.players.length === 3) {
+      await toggleLottieLayer(file_uuid, dbLottieFile[0].id, 1);
     }
 
     res.status(200).json({ message: 'Success' });

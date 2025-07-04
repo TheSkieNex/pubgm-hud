@@ -73,12 +73,11 @@ export async function updateLottieLayer(uuid: string, layerIndex: number, value:
   return lottieJson;
 }
 
-export async function toggleLottieLayer(
-  lottieJsonPath: string,
-  lottieJson: LottieJson,
-  dbLottieFileId: number,
-  layerIndex: number
-) {
+export async function toggleLottieLayer(uuid: string, dbLottieFileId: number, layerIndex: number) {
+  const lottieJsonPath = path.join(Config.LOTTIE_SYNC_DIR_PATH, uuid, 'data.json');
+  const lottieJsonFile = await fs.readFile(lottieJsonPath, 'utf-8');
+  const lottieJson: LottieJson = JSON.parse(lottieJsonFile);
+
   const dbLayer = await db
     .select()
     .from(lottieLayer)

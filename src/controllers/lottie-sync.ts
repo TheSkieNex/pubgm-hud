@@ -327,16 +327,7 @@ class LottieSyncController {
       return;
     }
 
-    const lottieJsonPath = path.join(Config.LOTTIE_SYNC_DIR_PATH, uuid, 'data.json');
-    const lottieJsonFile = await fs.readFile(lottieJsonPath, 'utf-8');
-    const lottieJson: LottieJson = JSON.parse(lottieJsonFile);
-
-    const outPoint = await toggleLottieLayer(
-      lottieJsonPath,
-      lottieJson,
-      dbLottieFile[0].id,
-      Number(layerIndex)
-    );
+    const outPoint = await toggleLottieLayer(uuid, dbLottieFile[0].id, Number(layerIndex));
 
     if (!outPoint) {
       res.status(404).json({ error: 'Not found' });

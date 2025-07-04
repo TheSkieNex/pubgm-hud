@@ -7,11 +7,83 @@ import { Request, Response } from 'express';
 import Config from '../../config';
 import db from '../../db';
 
-import { CustomUpdateWWCDTeamRequest } from './types';
+import { CustomUpdateWWCDTeamRequest, CustomUpdateMatchResultRequest } from './types';
 import { lottieFile, lottieLayer } from '../../db/schemas/lottie-file';
 import { table, team as dbTeam } from '../../db/schemas/table';
+import { overallResultsPoints } from '../../db/schemas/custom';
 import { errorHandler } from '../../lib/decorators/error-handler';
 import { updateLottieLayer, toggleLottieLayer } from '../../lib/utils';
+
+const PLACEMENT_POINTS = {
+  1: 10,
+  2: 6,
+  3: 5,
+  4: 4,
+  5: 3,
+  6: 2,
+  7: 1,
+  8: 1,
+};
+
+function formatTime(time: number): string {
+  const minutes = Math.floor(time / 60);
+  const seconds = time % 60;
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
+async function updateTeamList(
+  file_uuid: string,
+  index: number,
+  team: {
+    id: number;
+    wwcd: number;
+    eliminations: number;
+    placementPoints: number;
+    total: number;
+  },
+  dbTable: (typeof table.$inferSelect)[],
+  dbLottieLayers: (typeof lottieLayer.$inferSelect)[]
+) {
+  const dbTeamData = await db
+    .select()
+    .from(dbTeam)
+    .where(and(eq(dbTeam.tableId, dbTable[0].id), eq(dbTeam.teamId, team.id)));
+
+  if (dbTeamData.length === 0) return null;
+
+  const teamLogoPath = path.join(
+    Config.TABLES_DIR,
+    dbTable[0].uuid,
+    `${dbTable[0].largeLogoSize}x${dbTable[0].largeLogoSize}`,
+    `${team.id}.png`
+  );
+  const teamLogo = await fs.readFile(teamLogoPath);
+  const teamLogoBase64 = teamLogo.toString('base64');
+
+  // LOGO
+  const teamLogoLayer = dbLottieLayers.find(l => l.name === `TEAM_LOGO_${index}`);
+  await updateLottieLayer(file_uuid, teamLogoLayer!.layerIndex, teamLogoBase64);
+
+  // NAME
+  const teamNameLayer = dbLottieLayers.find(l => l.name === `TEAM_NAME_${index}`);
+  await updateLottieLayer(file_uuid, teamNameLayer!.layerIndex, dbTeamData[0].name);
+
+  // WWCD
+  const wwcdLayer = dbLottieLayers.find(l => l.name === `WWCD_${index}`);
+  await updateLottieLayer(file_uuid, wwcdLayer!.layerIndex, String(team.wwcd));
+
+  // PLACEMENT PTS
+  const placementPtsLayer = dbLottieLayers.find(l => l.name === `PTS_${index}`);
+  await updateLottieLayer(file_uuid, placementPtsLayer!.layerIndex, String(team.placementPoints));
+
+  // ELIMS
+  const elimsLayer = dbLottieLayers.find(l => l.name === `ELIMS_${index}`);
+  await updateLottieLayer(file_uuid, elimsLayer!.layerIndex, String(team.eliminations));
+
+  // TOTAL
+  const totalLayer = dbLottieLayers.find(l => l.name === `TOTAL_${index}`);
+  await updateLottieLayer(file_uuid, totalLayer!.layerIndex, String(team.total));
+}
 
 class CustomController {
   @errorHandler()
@@ -19,21 +91,21 @@ class CustomController {
     const { file_uuid, table_uuid, team } = req.body as CustomUpdateWWCDTeamRequest;
 
     if (!file_uuid || !table_uuid || !team) {
-      res.status(404).json({ error: 'Not found' });
+      res.status(404).json({ error: 'Body parameters are missing' });
       return;
     }
 
     const dbTable = await db.select().from(table).where(eq(table.uuid, table_uuid));
 
     if (dbTable.length === 0) {
-      res.status(404).json({ error: 'Not found' });
+      res.status(404).json({ error: 'Table not found' });
       return;
     }
 
     const dbLottieFile = await db.select().from(lottieFile).where(eq(lottieFile.uuid, file_uuid));
 
     if (dbLottieFile.length === 0) {
-      res.status(404).json({ error: 'Not found' });
+      res.status(404).json({ error: 'Lottie file not found' });
       return;
     }
 
@@ -53,8 +125,7 @@ class CustomController {
     }
 
     const teamLogoPath = path.join(
-      Config.STATIC_DIR,
-      'tables',
+      Config.TABLES_DIR,
       dbTable[0].uuid,
       `${dbTable[0].largeLogoSize}x${dbTable[0].largeLogoSize}`,
       `${team.id}.png`
@@ -70,54 +141,265 @@ class CustomController {
     const teamNameLayer = dbLottieLayers.find(layer => layer.name === 'TEAM_NAME');
     await updateLottieLayer(file_uuid, teamNameLayer!.layerIndex, dbTeamData[0].name.toUpperCase());
 
+    for (const [index, player] of team.players.entries()) {
+      const playerIndex = index + 1;
+
+      // PLAYER NAME
+      const playerNameLayer = dbLottieLayers.find(
+        layer => layer.name === `PLAYER_NAME_${playerIndex}`
+      );
+      await updateLottieLayer(file_uuid, playerNameLayer!.layerIndex, player.name);
+
+      // ELIMINATIONS
+      const eliminationsLayer = dbLottieLayers.find(
+        layer => layer.name === `ELIMINATIONS_CONTENT_${playerIndex}`
+      );
+      await updateLottieLayer(
+        file_uuid,
+        eliminationsLayer!.layerIndex,
+        player.eliminations.toString()
+      );
+
+      // KNOCKOUTS
+      const knockoutsLayer = dbLottieLayers.find(
+        layer => layer.name === `KNOCKOUTS_CONTENT_${playerIndex}`
+      );
+      await updateLottieLayer(file_uuid, knockoutsLayer!.layerIndex, player.knockouts.toString());
+
+      // GRENEADES
+      const grenadesLayer = dbLottieLayers.find(
+        layer => layer.name === `GRENADES_USED_CONTENT_${playerIndex}`
+      );
+      await updateLottieLayer(
+        file_uuid,
+        grenadesLayer!.layerIndex,
+        player.grenades_used.toString()
+      );
+
+      // SURVIVAL TIME
+      const survivalTimeLayer = dbLottieLayers.find(
+        layer => layer.name === `SURVIVAL_TIME_TEXT_CONTENT_${playerIndex}`
+      );
+      await updateLottieLayer(
+        file_uuid,
+        survivalTimeLayer!.layerIndex,
+        formatTime(player.survival_time)
+      );
+    }
+
     if (team.players.length === 4) {
-      for (const [index, player] of team.players.entries()) {
-        const playerIndex = index + 1;
+      // Disabling 5th player layers, they are from 8 + 19
+      for (let i = 8; i <= 26; i++) {
+        await toggleLottieLayer(file_uuid, dbLottieFile[0].id, i, false);
+      }
+    }
 
-        // PLAYER NAME
-        const playerNameLayer = dbLottieLayers.find(
-          layer => layer.name === `PLAYER_NAME_${playerIndex}`
-        );
-        await updateLottieLayer(file_uuid, playerNameLayer!.layerIndex, player.name);
+    if (team.players.length === 3) {
+      // Disabling 4th player layers, they are from 8 + 19
+      for (let i = 8; i <= 26; i++) {
+        await toggleLottieLayer(file_uuid, dbLottieFile[0].id, i, true);
+      }
+    }
 
-        // ELIMINATIONS
-        const eliminationsLayer = dbLottieLayers.find(
-          layer => layer.name === `ELIMINATIONS_CONTENT_${playerIndex}`
-        );
-        await updateLottieLayer(
+    res.status(200).json({ message: 'Success' });
+  }
+
+  @errorHandler()
+  static async updateMatchResult(req: Request, res: Response): Promise<void> {
+    const { file_uuid, table_uuid, teams } = req.body as CustomUpdateMatchResultRequest;
+
+    if (!file_uuid || !table_uuid || !teams) {
+      res.status(404).json({ error: 'Body parameters are missing' });
+      return;
+    }
+
+    const dbTable = await db.select().from(table).where(eq(table.uuid, table_uuid));
+
+    if (dbTable.length === 0) {
+      res.status(404).json({ error: 'Table not found' });
+      return;
+    }
+
+    const dbLottieFile = await db.select().from(lottieFile).where(eq(lottieFile.uuid, file_uuid));
+
+    if (dbLottieFile.length === 0) {
+      res.status(404).json({ error: 'Lottie file not found' });
+      return;
+    }
+
+    const dbLottieLayers = await db
+      .select()
+      .from(lottieLayer)
+      .where(eq(lottieLayer.fileId, dbLottieFile[0].id));
+
+    const sortedTeams = teams
+      .map(team => {
+        const placementPoints =
+          PLACEMENT_POINTS[team.placement as keyof typeof PLACEMENT_POINTS] || 0;
+        const totalPoints = placementPoints + team.eliminations;
+        return { ...team, total: totalPoints, placementPoints };
+      })
+      .sort((a, b) => {
+        if (b.total !== a.total) {
+          return b.total - a.total;
+        }
+        return a.placement - b.placement;
+      });
+
+    const first16Teams = sortedTeams.slice(0, 16);
+
+    for (const [index, team] of first16Teams.entries()) {
+      await updateTeamList(
+        file_uuid,
+        index + 1,
+        {
+          id: team.id,
+          wwcd: team.placement === 1 ? 1 : 0,
+          eliminations: team.eliminations,
+          placementPoints: team.placementPoints,
+          total: team.total,
+        },
+        dbTable,
+        dbLottieLayers
+      );
+    }
+
+    res.status(200).json({ message: 'Success' });
+  }
+
+  @errorHandler()
+  static async updateOverallResults(req: Request, res: Response): Promise<void> {
+    const { file_uuid, table_uuid, teams } = req.body as CustomUpdateMatchResultRequest;
+
+    if (!file_uuid || !table_uuid) {
+      res.status(404).json({ error: 'Body parameters are missing' });
+      return;
+    }
+
+    const dbTable = await db.select().from(table).where(eq(table.uuid, table_uuid));
+
+    if (dbTable.length === 0) {
+      res.status(404).json({ error: 'Table not found' });
+      return;
+    }
+
+    const dbLottieFile = await db.select().from(lottieFile).where(eq(lottieFile.uuid, file_uuid));
+
+    if (dbLottieFile.length === 0) {
+      res.status(404).json({ error: 'Lottie file not found' });
+      return;
+    }
+
+    const dbLottieLayers = await db
+      .select()
+      .from(lottieLayer)
+      .where(eq(lottieLayer.fileId, dbLottieFile[0].id));
+
+    const dbOverallResultsPoints = await db
+      .select()
+      .from(overallResultsPoints)
+      .where(eq(overallResultsPoints.tableId, dbTable[0].id));
+
+    if (dbOverallResultsPoints.length === 0) {
+      const sortedTeams = teams
+        .map(team => {
+          const placementPoints =
+            PLACEMENT_POINTS[team.placement as keyof typeof PLACEMENT_POINTS] || 0;
+          const totalPoints = placementPoints + team.eliminations;
+          return { ...team, total: totalPoints, placementPoints };
+        })
+        .sort((a, b) => {
+          if (b.total !== a.total) {
+            return b.total - a.total;
+          }
+          return a.placement - b.placement;
+        });
+
+      for (const [index, team] of sortedTeams.entries()) {
+        const placementPoints =
+          PLACEMENT_POINTS[team.placement as keyof typeof PLACEMENT_POINTS] || 0;
+        const totalPoints = placementPoints + team.eliminations;
+
+        await db.insert(overallResultsPoints).values({
+          tableId: dbTable[0].id,
+          teamId: team.id,
+          wwcd: team.placement === 1 ? 1 : 0,
+          placementPts: placementPoints,
+          elims: team.eliminations,
+          total: totalPoints,
+        });
+
+        await updateTeamList(
           file_uuid,
-          eliminationsLayer!.layerIndex,
-          player.eliminations.toString()
-        );
-
-        // KNOCKOUTS
-        const knockoutsLayer = dbLottieLayers.find(
-          layer => layer.name === `KNOCKOUTS_CONTENT_${playerIndex}`
-        );
-        await updateLottieLayer(file_uuid, knockoutsLayer!.layerIndex, player.knockouts.toString());
-
-        // GRENEADES
-        const grenadesLayer = dbLottieLayers.find(
-          layer => layer.name === `GRENADES_USED_CONTENT_${playerIndex}`
-        );
-        await updateLottieLayer(
-          file_uuid,
-          grenadesLayer!.layerIndex,
-          player.granades_used.toString()
-        );
-
-        // SURVIVAL TIME
-        const survivalTimeLayer = dbLottieLayers.find(
-          layer => layer.name === `SURVIVAL_TIME_TEXT_CONTENT_${playerIndex}`
-        );
-        await updateLottieLayer(
-          file_uuid,
-          survivalTimeLayer!.layerIndex,
-          player.survival_time.toString()
+          index + 1,
+          {
+            id: team.id,
+            wwcd: team.placement === 1 ? 1 : 0,
+            eliminations: team.eliminations,
+            placementPoints,
+            total: totalPoints,
+          },
+          dbTable,
+          dbLottieLayers
         );
       }
-    } else if (team.players.length === 3) {
-      await toggleLottieLayer(file_uuid, dbLottieFile[0].id, 1);
+    } else {
+      for (const team of teams) {
+        const placementPoints =
+          PLACEMENT_POINTS[team.placement as keyof typeof PLACEMENT_POINTS] || 0;
+        const totalPoints = placementPoints + team.eliminations;
+
+        const dbTeamPoints = dbOverallResultsPoints.find(p => p.teamId === team.id);
+
+        if (dbTeamPoints) {
+          await db
+            .update(overallResultsPoints)
+            .set({
+              wwcd: dbTeamPoints.wwcd + (team.placement === 1 ? 1 : 0),
+              placementPts: dbTeamPoints.placementPts + placementPoints,
+              elims: dbTeamPoints.elims + team.eliminations,
+              total: dbTeamPoints.total + totalPoints,
+            })
+            .where(eq(overallResultsPoints.id, dbTeamPoints.id));
+        } else {
+          console.log('Inserting team', team.id);
+          await db.insert(overallResultsPoints).values({
+            tableId: dbTable[0].id,
+            teamId: team.id,
+            wwcd: team.placement === 1 ? 1 : 0,
+            placementPts: placementPoints,
+            elims: team.eliminations,
+            total: totalPoints,
+          });
+        }
+      }
+
+      const dbTeamPoints = await db
+        .select()
+        .from(overallResultsPoints)
+        .where(eq(overallResultsPoints.tableId, dbTable[0].id));
+      const sortedTeams = dbTeamPoints.sort((a, b) => {
+        if (b.total !== a.total) {
+          return b.total - a.total;
+        }
+        return b.wwcd - a.wwcd;
+      });
+
+      for (const [index, team] of sortedTeams.entries()) {
+        await updateTeamList(
+          file_uuid,
+          index + 1,
+          {
+            id: team.teamId,
+            wwcd: team.wwcd,
+            eliminations: team.elims,
+            placementPoints: team.placementPts,
+            total: team.total,
+          },
+          dbTable,
+          dbLottieLayers
+        );
+      }
     }
 
     res.status(200).json({ message: 'Success' });

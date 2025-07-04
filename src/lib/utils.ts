@@ -73,7 +73,12 @@ export async function updateLottieLayer(uuid: string, layerIndex: number, value:
   return lottieJson;
 }
 
-export async function toggleLottieLayer(uuid: string, dbLottieFileId: number, layerIndex: number) {
+export async function toggleLottieLayer(
+  uuid: string,
+  dbLottieFileId: number,
+  layerIndex: number,
+  hide?: boolean
+) {
   const lottieJsonPath = path.join(Config.LOTTIE_SYNC_DIR_PATH, uuid, 'data.json');
   const lottieJsonFile = await fs.readFile(lottieJsonPath, 'utf-8');
   const lottieJson: LottieJson = JSON.parse(lottieJsonFile);
@@ -100,9 +105,14 @@ export async function toggleLottieLayer(uuid: string, dbLottieFileId: number, la
   // And we save the previous out point in the database, in order to restore the layer's visibility back to its original state.
   // 'Visible' layer wouldn't have the same out point as the in point.
 
-  const outPoint = layer.op === layer.ip ? dbLayer[0].outPoint : layer.ip;
+  const outPoint = hide ? layer.ip : layer.op === layer.ip ? dbLayer[0].outPoint : layer.ip;
 
-  await db.update(lottieLayer).set({ outPoint: layer.op }).where(eq(lottieLayer.id, dbLayer[0].id));
+  if (layer.op !== layer.ip) {
+    await db
+      .update(lottieLayer)
+      .set({ outPoint: layer.op })
+      .where(eq(lottieLayer.id, dbLayer[0].id));
+  }
 
   lottieJson.layers = lottieJson.layers.map(layer => {
     if (layer.ind === Number(layerIndex)) {

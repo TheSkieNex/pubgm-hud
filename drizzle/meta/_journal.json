@@ -5,43 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1750502493765,
-      "tag": "0000_adorable_earthquake",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1750533483191,
-      "tag": "0001_round_pepper_potts",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1750581979929,
-      "tag": "0002_far_spiral",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "6",
-      "when": 1750610923208,
-      "tag": "0003_true_celestials",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "6",
-      "when": 1751223126045,
-      "tag": "0004_mean_bishop",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "6",
-      "when": 1751236181166,
-      "tag": "0005_sparkling_bill_hollister",
+      "when": 1751648650059,
+      "tag": "0000_spotty_gateway",
       "breakpoints": true
     }
   ]

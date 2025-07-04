@@ -1,1 +1,0 @@
-ALTER TABLE `lottie_layers` ADD `name` text NOT NULL;

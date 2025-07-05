@@ -11,6 +11,7 @@ const config: Config = {
           yellow: '#F3C74D',
           dark: '#200B24',
           'dark-light': '#968A8A',
+          green: '#25d92c',
         },
       },
       fontFamily: {

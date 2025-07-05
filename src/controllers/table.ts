@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import crypto from 'node:crypto';
 
 import { Request, Response } from 'express';
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, inArray, notInArray } from 'drizzle-orm';
 
 import { errorHandler } from '../lib/decorators/error-handler';
 
@@ -46,6 +46,15 @@ interface PlayersInfoRequest {
     rank: number;
   }[];
 }
+
+interface UpdateTeamPointsRequest {
+  table_uuid: string;
+  teams: {
+    teamId: number;
+    points: number;
+  }[];
+}
+
 class TableController {
   @errorHandler()
   static async init(req: Request, res: Response): Promise<void> {
@@ -120,7 +129,11 @@ class TableController {
       return;
     }
 
-    const dbTeams = await db.select().from(team).where(eq(team.tableId, dbTable[0].id));
+    const dbTeams = await db
+      .select()
+      .from(team)
+      .where(and(eq(team.tableId, dbTable[0].id), eq(team.present, 1)));
+
     const dbTeamPoints = await db
       .select()
       .from(teamPoint)
@@ -300,6 +313,61 @@ class TableController {
     }
 
     await db.delete(table).where(eq(table.uuid, uuid));
+
+    res.json({ success: true });
+  }
+
+  @errorHandler()
+  static async updatePresentTeams(req: Request, res: Response): Promise<void> {
+    const { table_uuid, team_ids } = req.body;
+
+    if (!table_uuid || !team_ids) {
+      res.status(400).json({ error: 'Table UUID and team IDs are required' });
+      return;
+    }
+
+    const dbTable = await db.select().from(table).where(eq(table.uuid, table_uuid));
+
+    if (dbTable.length === 0) {
+      res.status(404).json({ error: 'Table not found' });
+      return;
+    }
+
+    await db
+      .update(team)
+      .set({ present: 1 })
+      .where(and(eq(team.tableId, dbTable[0].id), inArray(team.teamId, team_ids)));
+
+    await db
+      .update(team)
+      .set({ present: 0 })
+      .where(and(eq(team.tableId, dbTable[0].id), notInArray(team.teamId, team_ids)));
+
+    res.json({ success: true });
+  }
+
+  @errorHandler()
+  static async updateTeamPoints(req: Request, res: Response): Promise<void> {
+    const { table_uuid, teams } = req.body as UpdateTeamPointsRequest;
+
+    if (!table_uuid || !teams) {
+      res.status(400).json({ error: 'Table UUID and team IDs are required' });
+      return;
+    }
+
+    const dbTable = await db.select().from(table).where(eq(table.uuid, table_uuid));
+
+    if (dbTable.length === 0) {
+      res.status(404).json({ error: 'Table not found' });
+      return;
+    }
+
+    for (const team of teams) {
+      await db
+        .update(teamPoint)
+        .set({ points: team.points })
+        .where(eq(teamPoint.teamId, team.teamId));
+    }
 
     res.json({ success: true });
   }

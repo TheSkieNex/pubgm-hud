@@ -40,6 +40,7 @@ CREATE TABLE `teams` (
 	`name` text NOT NULL,
 	`tag` text NOT NULL,
 	`match_elims` integer DEFAULT 0 NOT NULL,
+	`present` integer DEFAULT 1 NOT NULL,
 	FOREIGN KEY (`table_id`) REFERENCES `tables`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint

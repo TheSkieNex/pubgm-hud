@@ -22,6 +22,7 @@ export const team = sqliteTable('teams', {
   name: text('name').notNull(),
   tag: text('tag').notNull(),
   matchElims: integer('match_elims').notNull().default(0),
+  present: integer('present').notNull().default(1),
 });
 
 export const teamPoint = sqliteTable('team_points', {

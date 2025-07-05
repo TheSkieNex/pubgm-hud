@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "66cf8fee-80f2-4bad-bd25-c5b81582a488",
+  "id": "2170b8ac-1fbc-4434-a8b3-e9635ac28d12",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "overall_results_points": {
@@ -261,6 +261,14 @@
           "notNull": true,
           "autoincrement": false,
           "default": 0
+        },
+        "present": {
+          "name": "present",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 1
         }
       },
       "indexes": {},

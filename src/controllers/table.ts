@@ -48,7 +48,6 @@ interface PlayersInfoRequest {
 }
 
 interface UpdateTeamPointsRequest {
-  table_uuid: string;
   teams: {
     teamId: number;
     points: number;
@@ -134,21 +133,21 @@ class TableController {
       .from(team)
       .where(and(eq(team.tableId, dbTable[0].id), eq(team.present, 1)));
 
-    const dbTeamPoints = await db
-      .select()
-      .from(teamPoint)
-      .where(eq(teamPoint.tableId, dbTable[0].id));
+    const teams = [];
+
+    for (const team of dbTeams) {
+      const dbTeamPoints = await db.select().from(teamPoint).where(eq(teamPoint.teamId, team.id));
+
+      teams.push({
+        ...team,
+        points: dbTeamPoints[0].points,
+        liveMemberNum: 4,
+      });
+    }
 
     res.json({
       table: dbTable[0],
-      teams: dbTeams.map(team => {
-        const teamPoints = dbTeamPoints.find(t => t.teamId === team.id);
-        return {
-          ...team,
-          points: teamPoints?.points,
-          liveMemberNum: 4,
-        };
-      }),
+      teams,
     });
   }
 
@@ -269,6 +268,11 @@ class TableController {
       playersByTeam.get(player.teamId)!.push(player);
     }
 
+    const presentTeams = await db
+      .select()
+      .from(team)
+      .where(and(eq(team.tableId, dbTable[0].id), eq(team.present, 1)));
+
     const eliminatedTeams = [];
 
     for (const [teamId, players] of playersByTeam) {
@@ -285,6 +289,20 @@ class TableController {
           rank: players[0].rank,
         });
       }
+    }
+
+    const unpresentTeams = presentTeams.filter(team => !playersByTeam.has(team.teamId));
+    for (const t of unpresentTeams) {
+      const dbTeam = await db.select().from(team).where(eq(team.teamId, t.teamId));
+      if (dbTeam.length === 0) continue;
+
+      eliminatedTeams.push({
+        tableUUID: table_uuid,
+        teamId: dbTeam[0].teamId,
+        teamName: dbTeam[0].name,
+        matchElims: dbTeam[0].matchElims,
+        rank: 0,
+      });
     }
 
     socket.emit(`players-info-${table_uuid}`, player_info_list);
@@ -319,14 +337,15 @@ class TableController {
 
   @errorHandler()
   static async updatePresentTeams(req: Request, res: Response): Promise<void> {
-    const { table_uuid, team_ids } = req.body;
+    const { uuid } = req.params;
+    const { team_ids } = req.body;
 
-    if (!table_uuid || !team_ids) {
+    if (!uuid || !team_ids) {
       res.status(400).json({ error: 'Table UUID and team IDs are required' });
       return;
     }
 
-    const dbTable = await db.select().from(table).where(eq(table.uuid, table_uuid));
+    const dbTable = await db.select().from(table).where(eq(table.uuid, uuid));
 
     if (dbTable.length === 0) {
       res.status(404).json({ error: 'Table not found' });
@@ -348,14 +367,15 @@ class TableController {
 
   @errorHandler()
   static async updateTeamPoints(req: Request, res: Response): Promise<void> {
-    const { table_uuid, teams } = req.body as UpdateTeamPointsRequest;
+    const { uuid } = req.params;
+    const { teams } = req.body as UpdateTeamPointsRequest;
 
-    if (!table_uuid || !teams) {
+    if (!uuid || !teams) {
       res.status(400).json({ error: 'Table UUID and team IDs are required' });
       return;
     }
 
-    const dbTable = await db.select().from(table).where(eq(table.uuid, table_uuid));
+    const dbTable = await db.select().from(table).where(eq(table.uuid, uuid));
 
     if (dbTable.length === 0) {
       res.status(404).json({ error: 'Table not found' });

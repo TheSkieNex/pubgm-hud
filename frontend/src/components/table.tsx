@@ -99,10 +99,10 @@ const TeamComponent = ({
               <div
                 className={cn(
                   'w-[3px] h-[26px] transition-all duration-300',
-                  player.liveState === 1 ? 'bg-table-green' : 'bg-red-500',
-                  player.bHasDied && 'bg-transparent'
+                  player.liveState === 4 ? 'bg-red-500' : 'bg-table-green',
+                  player.health === 0 && 'bg-transparent'
                 )}
-                style={player.liveState === 1 ? { height: `${player.health}%` } : {}}
+                style={player.liveState === 4 ? { height: `${player.health}%` } : {}}
               ></div>
             </div>
           ))}

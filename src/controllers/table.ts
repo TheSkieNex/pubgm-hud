@@ -40,9 +40,8 @@ interface PlayersInfoRequest {
   player_info_list: {
     teamId: number;
     uID: number;
-    health: number;
-    liveState: number;
-    bHasDied: boolean;
+    health: number; // 0: dead
+    liveState: number; // 5: dead, 4: knocked
     rank: number;
   }[];
 }
@@ -276,7 +275,7 @@ class TableController {
     const eliminatedTeams = [];
 
     for (const [teamId, players] of playersByTeam) {
-      const allPlayersDead = players.every(player => player.bHasDied === true);
+      const allPlayersDead = players.every(player => player.health === 0);
       if (allPlayersDead) {
         const dbTeam = await db.select().from(team).where(eq(team.teamId, teamId));
         if (dbTeam.length === 0) continue;

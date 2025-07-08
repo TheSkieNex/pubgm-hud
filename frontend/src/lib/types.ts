@@ -25,9 +25,8 @@ export interface TeamPlayer {
   teamId: number;
   rank: number; // team rank
   uID: number;
-  health: number;
-  liveState: number; // 0: knocked, 1: alive
-  bHasDied: boolean; // true: dead, false: alive
+  health: number; // 0: dead
+  liveState: number; // 5: dead, 4: knocked
 }
 
 export interface TeamEliminated {

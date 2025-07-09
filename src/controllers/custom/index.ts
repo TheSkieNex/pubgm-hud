@@ -372,7 +372,6 @@ class CustomController {
             })
             .where(eq(overallResultsPoints.id, dbTeamPoints.id));
         } else {
-          console.log('Inserting team', team.id);
           await db.insert(overallResultsPoints).values({
             tableId: dbTable[0].id,
             teamId: team.id,
@@ -411,6 +410,27 @@ class CustomController {
         );
       }
     }
+
+    res.status(200).json({ message: 'Success' });
+  }
+
+  @errorHandler()
+  static async resetOverallResults(req: Request, res: Response): Promise<void> {
+    const { tableUuid } = req.params;
+
+    if (!tableUuid) {
+      res.status(404).json({ error: 'Body parameters are missing' });
+      return;
+    }
+
+    const dbTable = await db.select().from(table).where(eq(table.uuid, tableUuid));
+
+    if (dbTable.length === 0) {
+      res.status(404).json({ error: 'Table not found' });
+      return;
+    }
+
+    await db.delete(overallResultsPoints).where(eq(overallResultsPoints.tableId, dbTable[0].id));
 
     res.status(200).json({ message: 'Success' });
   }

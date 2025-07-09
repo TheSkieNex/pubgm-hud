@@ -54,7 +54,10 @@ export const useTable = (uuid: string) => {
                 matchElims: teamInfo.matchElims,
               };
             }
-            return undefined;
+            return {
+              ...team,
+              eliminated: true,
+            };
           })
           .filter(team => team !== undefined)
           .sort((a, b) => b.points - a.points);

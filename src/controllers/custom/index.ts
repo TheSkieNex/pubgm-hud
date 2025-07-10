@@ -61,8 +61,6 @@ async function updateTeamList(
   const teamLogo = await fs.readFile(teamLogoPath);
   const teamLogoBase64 = teamLogo.toString('base64');
 
-  console.log(team);
-
   // LOGO
   const teamLogoLayer = dbLottieLayers.find(l => l.name === `TEAM_LOGO_${index}`);
   await updateLottieLayer(file_uuid, teamLogoLayer!.layerIndex, teamLogoBase64);
@@ -417,15 +415,15 @@ class CustomController {
   }
 
   @errorHandler()
-  static async resetOverallResults(req: Request, res: Response): Promise<void> {
-    const { file_uuid, table_uuid } = req.body;
+  static async resetMatchResults(req: Request, res: Response): Promise<void> {
+    const { fileUUID, tableUUID } = req.params;
 
-    if (!file_uuid || !table_uuid) {
+    if (!fileUUID || !tableUUID) {
       res.status(404).json({ error: 'Body parameters are missing' });
       return;
     }
 
-    const dbTable = await db.select().from(table).where(eq(table.uuid, table_uuid));
+    const dbTable = await db.select().from(table).where(eq(table.uuid, tableUUID));
 
     if (dbTable.length === 0) {
       res.status(404).json({ error: 'Table not found' });
@@ -434,7 +432,56 @@ class CustomController {
 
     await db.delete(overallResultsPoints).where(eq(overallResultsPoints.tableId, dbTable[0].id));
 
-    const dbLottieFile = await db.select().from(lottieFile).where(eq(lottieFile.uuid, file_uuid));
+    const dbLottieFile = await db.select().from(lottieFile).where(eq(lottieFile.uuid, fileUUID));
+
+    if (dbLottieFile.length === 0) {
+      res.status(404).json({ error: 'Lottie file not found' });
+      return;
+    }
+
+    const dbLottieLayers = await db
+      .select()
+      .from(lottieLayer)
+      .where(eq(lottieLayer.fileId, dbLottieFile[0].id));
+
+    for (let i = 1, y = 5; i <= 16 && y <= 20; i++, y++) {
+      await updateTeamList(
+        fileUUID,
+        i,
+        {
+          id: y,
+          wwcd: 0,
+          eliminations: 0,
+          placementPoints: 0,
+          total: 0,
+        },
+        dbTable,
+        dbLottieLayers
+      );
+    }
+
+    res.status(200).json({ message: 'Success' });
+  }
+
+  @errorHandler()
+  static async resetOverallResults(req: Request, res: Response): Promise<void> {
+    const { fileUUID, tableUUID } = req.params;
+
+    if (!fileUUID || !tableUUID) {
+      res.status(404).json({ error: 'Body parameters are missing' });
+      return;
+    }
+
+    const dbTable = await db.select().from(table).where(eq(table.uuid, tableUUID));
+
+    if (dbTable.length === 0) {
+      res.status(404).json({ error: 'Table not found' });
+      return;
+    }
+
+    await db.delete(overallResultsPoints).where(eq(overallResultsPoints.tableId, dbTable[0].id));
+
+    const dbLottieFile = await db.select().from(lottieFile).where(eq(lottieFile.uuid, fileUUID));
 
     if (dbLottieFile.length === 0) {
       res.status(404).json({ error: 'Lottie file not found' });
@@ -448,7 +495,7 @@ class CustomController {
 
     for (let i = 1, y = 5; i <= 20 && y <= 24; i++, y++) {
       await updateTeamList(
-        file_uuid,
+        fileUUID,
         i,
         {
           id: y,

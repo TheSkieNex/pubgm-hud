@@ -24,7 +24,7 @@ export interface TeamPoint {
 export interface TeamPlayer {
   teamId: number;
   rank: number; // team rank
-  uID: number;
+  uId: number;
   health: number; // 0: dead
   liveState: number; // 5: dead, 4: knocked
 }

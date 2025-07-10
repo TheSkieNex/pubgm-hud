@@ -7,6 +7,6 @@ const customRouter = Router();
 customRouter.put('/wwcd-team', CustomController.updateWWCDTeam);
 customRouter.put('/match-results', CustomController.updateMatchResult);
 customRouter.put('/overall-results', CustomController.updateOverallResults);
-customRouter.delete('/:tableUuid/reset-overall-results', CustomController.resetOverallResults);
+customRouter.delete('/reset-overall-results', CustomController.resetOverallResults);
 
 export default customRouter;

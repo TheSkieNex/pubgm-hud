@@ -28,7 +28,7 @@ export const useTable = (uuid: string) => {
               players.push({
                 teamId: team.teamId,
                 rank: 1,
-                uID: i,
+                uId: i,
                 health: 100,
                 liveState: 1,
               });

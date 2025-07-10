@@ -102,7 +102,7 @@ const TeamComponent = ({
                   player.liveState === 4 ? 'bg-red-500' : 'bg-table-green',
                   player.health === 0 && 'bg-transparent'
                 )}
-                style={player.liveState === 4 ? { height: `${player.health}%` } : {}}
+                style={player.health !== 0 ? { height: `${player.health}%` } : {}}
               ></div>
             </div>
           ))}

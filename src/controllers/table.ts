@@ -39,7 +39,7 @@ interface PlayersInfoRequest {
   table_uuid: string;
   player_info_list: {
     teamId: number;
-    uID: number;
+    uId: number;
     health: number; // 0: dead
     liveState: number; // 5: dead, 4: knocked
     rank: number;

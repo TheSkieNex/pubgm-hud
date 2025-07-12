@@ -7,7 +7,11 @@ import { Request, Response } from 'express';
 import Config from '../../config';
 import db from '../../db';
 
-import { CustomUpdateWWCDTeamRequest, CustomUpdateMatchResultRequest } from './types';
+import {
+  CustomUpdateWWCDTeamRequest,
+  CustomUpdateMatchResultRequest,
+  CustomUpdateOverallResultsAbsoluteRequest,
+} from './types';
 import { lottieFile, lottieLayer } from '../../db/schemas/lottie-file';
 import { table, team as dbTeam } from '../../db/schemas/table';
 import { overallResultsPoints } from '../../db/schemas/custom';
@@ -409,6 +413,90 @@ class CustomController {
           dbLottieLayers
         );
       }
+    }
+
+    res.status(200).json({ message: 'Success' });
+  }
+
+  static async updateOverallResultsAbsolute(req: Request, res: Response): Promise<void> {
+    const { file_uuid, table_uuid, teams } = req.body as CustomUpdateOverallResultsAbsoluteRequest;
+
+    const dbTable = await db.select().from(table).where(eq(table.uuid, table_uuid));
+
+    if (dbTable.length === 0) {
+      res.status(404).json({ error: 'Table not found' });
+      return;
+    }
+
+    const dbLottieFile = await db.select().from(lottieFile).where(eq(lottieFile.uuid, file_uuid));
+
+    if (dbLottieFile.length === 0) {
+      res.status(404).json({ error: 'Lottie file not found' });
+      return;
+    }
+
+    const dbLottieLayers = await db
+      .select()
+      .from(lottieLayer)
+      .where(eq(lottieLayer.fileId, dbLottieFile[0].id));
+
+    const dbOverallResultsPoints = await db
+      .select()
+      .from(overallResultsPoints)
+      .where(eq(overallResultsPoints.tableId, dbTable[0].id));
+
+    const updatedTeams = teams.map(team => {
+      const totalPoints = team.placement + team.eliminations;
+      return { ...team, total: totalPoints };
+    });
+
+    const sortedTeams = updatedTeams.sort((a, b) => {
+      if (b.total !== a.total) {
+        return b.total - a.total;
+      }
+      if (b.placement !== a.placement) {
+        return a.placement - b.placement;
+      }
+      return a.eliminations - b.eliminations;
+    });
+
+    for (const [index, team] of sortedTeams.entries()) {
+      const dbTeamPoints = dbOverallResultsPoints.find(p => p.teamId === team.id);
+
+      if (dbTeamPoints) {
+        await db
+          .update(overallResultsPoints)
+          .set({
+            wwcd: team.wwcd,
+            placementPts: team.placement,
+            elims: team.eliminations,
+            total: team.total,
+          })
+          .where(eq(overallResultsPoints.id, dbTeamPoints.id));
+      } else {
+        await db.insert(overallResultsPoints).values({
+          tableId: dbTable[0].id,
+          teamId: team.id,
+          wwcd: team.wwcd,
+          placementPts: team.placement,
+          elims: team.eliminations,
+          total: team.total,
+        });
+      }
+
+      await updateTeamList(
+        file_uuid,
+        index + 1,
+        {
+          id: team.id,
+          wwcd: team.wwcd,
+          placementPoints: team.placement,
+          eliminations: team.eliminations,
+          total: team.total,
+        },
+        dbTable,
+        dbLottieLayers
+      );
     }
 
     res.status(200).json({ message: 'Success' });

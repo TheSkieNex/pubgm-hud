@@ -32,10 +32,11 @@ export const teamPoint = sqliteTable('team_points', {
     .references(() => table.id, {
       onDelete: 'cascade',
     }),
-  teamId: integer('team_id')
+  dbTeamId: integer('db_team_id')
     .notNull()
     .references(() => team.id, {
       onDelete: 'cascade',
     }),
+  teamId: integer('team_id').notNull(),
   points: integer('points').notNull().default(0),
 });

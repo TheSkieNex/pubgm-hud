@@ -48,7 +48,7 @@ interface PlayersInfoRequest {
 
 interface UpdateTeamPointsRequest {
   teams: {
-    teamId: number;
+    id: number;
     points: number;
   }[];
 }
@@ -97,7 +97,8 @@ class TableController {
 
       await db.insert(teamPoint).values({
         tableId: dbTable[0].id,
-        teamId: dbTeam[0].id,
+        dbTeamId: dbTeam[0].id,
+        teamId: teamData.id,
         points: 0,
       });
     }
@@ -135,7 +136,7 @@ class TableController {
     const teams = [];
 
     for (const team of dbTeams) {
-      const dbTeamPoints = await db.select().from(teamPoint).where(eq(teamPoint.teamId, team.id));
+      const dbTeamPoints = await db.select().from(teamPoint).where(eq(teamPoint.dbTeamId, team.id));
 
       teams.push({
         ...team,
@@ -382,10 +383,7 @@ class TableController {
     }
 
     for (const team of teams) {
-      await db
-        .update(teamPoint)
-        .set({ points: team.points })
-        .where(eq(teamPoint.teamId, team.teamId));
+      await db.update(teamPoint).set({ points: team.points }).where(eq(teamPoint.teamId, team.id));
     }
 
     res.json({ success: true });

@@ -28,3 +28,16 @@ export interface CustomUpdateMatchResultRequest {
   table_uuid: string;
   teams: MatchResultTeam[];
 }
+
+interface OverallResultsTeam {
+  id: number;
+  wwcd: number;
+  placement: number;
+  eliminations: number;
+}
+
+export interface CustomUpdateOverallResultsAbsoluteRequest {
+  file_uuid: string;
+  table_uuid: string;
+  teams: OverallResultsTeam[];
+}

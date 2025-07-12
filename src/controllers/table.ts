@@ -201,7 +201,7 @@ class TableController {
         const dbTeamPoint = await db
           .select()
           .from(teamPoint)
-          .where(eq(teamPoint.teamId, dbTeam[0].id))
+          .where(eq(teamPoint.dbTeamId, dbTeam[0].id))
           .limit(1);
 
         await db

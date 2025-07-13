@@ -28,10 +28,9 @@ export const useTable = (uuid: string) => {
               players.push({
                 teamId: team.teamId,
                 rank: 1,
-                uID: i,
+                uId: i,
                 health: 100,
                 liveState: 1,
-                bHasDied: false,
               });
             }
             return players;
@@ -55,7 +54,10 @@ export const useTable = (uuid: string) => {
                 matchElims: teamInfo.matchElims,
               };
             }
-            return undefined;
+            return {
+              ...team,
+              eliminated: true,
+            };
           })
           .filter(team => team !== undefined)
           .sort((a, b) => b.points - a.points);
@@ -65,10 +67,10 @@ export const useTable = (uuid: string) => {
     socket.on(`players-info-${uuid}`, (data: TeamPlayer[]) => {
       setTeamPlayers(
         data.sort((a, b) => {
-          if (a.bHasDied && !b.bHasDied) return 1;
-          if (!a.bHasDied && b.bHasDied) return -1;
-          if (a.liveState === 0 && b.liveState === 1) return 1;
-          if (a.liveState === 1 && b.liveState === 0) return -1;
+          if (a.health === 0 && b.health !== 0) return 1;
+          if (a.health !== 0 && b.health === 0) return -1;
+          if (a.liveState === 4 && b.liveState !== 4) return 1;
+          if (a.liveState !== 4 && b.liveState === 4) return -1;
           return 0;
         })
       );

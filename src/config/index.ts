@@ -6,6 +6,8 @@ import { getLocalIpAddress } from '../utils/server';
 
 const localIpAddress = getLocalIpAddress();
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 class Config {
   public static readonly PORT = Number(process.env.PORT) || 3011;
   public static readonly HOST = process.env.HOST || `http://${localIpAddress}:${this.PORT}`;
@@ -29,13 +31,12 @@ class Config {
 
   public static readonly TABLES_DIR = path.join(this.STATIC_DIR, 'tables');
 
-  public static readonly LOTTIE_SYNC_DIR = 'lottie-sync';
-  public static readonly LOTTIE_SYNC_DIR_PATH = path.join(this.STATIC_DIR, this.LOTTIE_SYNC_DIR);
+  public static readonly LOTTIE_DIR = 'lottie';
+  public static readonly LOTTIE_DIR_PATH = path.join(this.STATIC_DIR, this.LOTTIE_DIR);
 
-  public static readonly DB_PATH = path.join(
-    this.BASE_DIR,
-    process.env.DB_FILE_NAME || 'database.db'
-  );
+  public static readonly DB_PATH = isProduction
+    ? path.join(this.BASE_DIR, 'database_storage', 'database.db')
+    : path.join(this.BASE_DIR, process.env.DB_FILE_NAME || 'database.db');
 }
 
 export default Config;

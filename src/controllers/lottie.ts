@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import crypto from 'node:crypto';
 
 import { Request, Response } from 'express';
-import { eq, and, inArray } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 
 import { LottieFileConfig } from '../lib/types';
 import { LottieJson, getTextLayerContent, isLottieAssetImage } from '../lib/lottie';
@@ -14,8 +14,13 @@ import db from '../db';
 
 import { lottieFile, lottieLayer } from '../db/schemas/lottie-file';
 import { errorHandler } from '../lib/decorators/error-handler';
-import { prepareLottieBuildSource, copyLottieTemplates } from '../lib/utils';
-import { getLayersData } from '../utils/lottie-sync';
+import {
+  prepareLottieBuildSource,
+  copyLottieTemplates,
+  toggleLottieLayer,
+  updateLottieLayer,
+} from '../lib/utils';
+import { getLayersData } from '../utils/lottie';
 
 interface UploadRequest {
   source: string;
@@ -37,7 +42,7 @@ interface UpdateLayerRequest {
   value: string;
 }
 
-class LottieSyncController {
+class LottieController {
   @errorHandler()
   static async get(req: Request, res: Response): Promise<void> {
     const { uuid } = req.params;
@@ -62,7 +67,7 @@ class LottieSyncController {
       .from(lottieLayer)
       .where(eq(lottieLayer.fileId, dbLottieFile[0].id));
 
-    const lottieDataDirPath = path.join(Config.LOTTIE_SYNC_DIR_PATH, dbLottieFile[0].uuid);
+    const lottieDataDirPath = path.join(Config.LOTTIE_DIR_PATH, dbLottieFile[0].uuid);
     const lottieJsonFile = await fs.readFile(path.join(lottieDataDirPath, 'data.json'), 'utf-8');
     const configFilePath = path.join(lottieDataDirPath, 'config.js');
     const configFile = await fs.readFile(configFilePath, 'utf-8');
@@ -80,7 +85,7 @@ class LottieSyncController {
     const data = {
       name: dbLottieFile[0].name,
       uuid: dbLottieFile[0].uuid,
-      url: `${Config.HOST}/${Config.LOTTIE_SYNC_DIR}/${dbLottieFile[0].uuid}/index.html`,
+      url: `${Config.HOST}/${Config.LOTTIE_DIR}/${dbLottieFile[0].uuid}/index.html`,
       lottieJson: JSON.parse(lottieJsonFile),
       selectedLayerIndices: selectedLayers.map(l => l.layerIndex),
       config: configData,
@@ -103,7 +108,7 @@ class LottieSyncController {
       name: file.name,
       createdAt: file.createdAt,
       updatedAt: file.updatedAt,
-      url: `${Config.HOST}/${Config.LOTTIE_SYNC_DIR}/${file.uuid}/index.html`,
+      url: `${Config.HOST}/${Config.LOTTIE_DIR}/${file.uuid}/index.html`,
     }));
 
     res.json(data);
@@ -126,14 +131,7 @@ class LottieSyncController {
       })
       .returning();
 
-    await db.insert(lottieLayer).values(
-      layers.map(layerIndex => ({
-        fileId: dbLottieFile[0].id,
-        layerIndex,
-      }))
-    );
-
-    const destDirPath = path.join(Config.LOTTIE_SYNC_DIR_PATH, dbLottieFile[0].uuid);
+    const destDirPath = path.join(Config.LOTTIE_DIR_PATH, dbLottieFile[0].uuid);
     await fs.mkdir(destDirPath, { recursive: true });
 
     const assetsDirPath = path.join(destDirPath, 'assets');
@@ -166,6 +164,27 @@ class LottieSyncController {
       await fs.writeFile(destFilePath, buffer);
     }
 
+    if (layers.length > 0) {
+      await db.insert(lottieLayer).values(
+        layers
+          .map(layerIndex => {
+            const layerData = jsonData.layers.find(l => l.ind === layerIndex);
+
+            if (!layerData) {
+              res.status(404).json({ error: 'Not found' });
+              return;
+            }
+
+            return {
+              name: layerData.nm,
+              fileId: dbLottieFile[0].id,
+              layerIndex,
+            };
+          })
+          .filter(layer => layer !== undefined)
+      );
+    }
+
     await copyLottieTemplates(destDirPath);
 
     res.send('ok');
@@ -191,14 +210,27 @@ class LottieSyncController {
       await db.update(lottieFile).set({ name: fileName }).where(eq(lottieFile.uuid, uuid));
     }
 
+    const lottieFileDirPath = path.join(Config.LOTTIE_DIR_PATH, dbLottieFile[0].uuid);
+
+    const lottieJsonPath = path.join(lottieFileDirPath, 'data.json');
+    const lottieJson: LottieJson = JSON.parse(await fs.readFile(lottieJsonPath, 'utf-8'));
+
     const prevFileLayers = await db
       .select()
       .from(lottieLayer)
       .where(eq(lottieLayer.fileId, dbLottieFile[0].id));
 
     const newFileLayers = selectedLayers.map(layer => {
+      const layerData = lottieJson.layers.find(l => l.ind === layer);
+
+      if (!layerData) {
+        res.status(404).json({ error: 'Not found' });
+        return;
+      }
+
       return {
         fileId: dbLottieFile[0].id,
+        name: layerData.nm,
         layerIndex: layer,
       };
     });
@@ -217,13 +249,8 @@ class LottieSyncController {
     }
 
     if (newFileLayers.length > 0) {
-      await db.insert(lottieLayer).values(newFileLayers);
+      await db.insert(lottieLayer).values(newFileLayers.filter(layer => layer !== undefined));
     }
-
-    const lottieFileDirPath = path.join(Config.LOTTIE_SYNC_DIR_PATH, dbLottieFile[0].uuid);
-
-    const lottieJsonPath = path.join(lottieFileDirPath, 'data.json');
-    const lottieJson: LottieJson = JSON.parse(await fs.readFile(lottieJsonPath, 'utf-8'));
 
     for (const updatedLayer of updatedLayers) {
       const actualLayer = lottieJson.layers.find(layer => layer.ind === updatedLayer.index);
@@ -276,7 +303,7 @@ class LottieSyncController {
       return;
     }
 
-    const dataDirPath = path.join(Config.LOTTIE_SYNC_DIR_PATH, uuid);
+    const dataDirPath = path.join(Config.LOTTIE_DIR_PATH, uuid);
 
     await db.delete(lottieFile).where(eq(lottieFile.uuid, uuid));
     await fs.rm(dataDirPath, { recursive: true });
@@ -300,52 +327,12 @@ class LottieSyncController {
       return;
     }
 
-    const lottieJsonPath = path.join(Config.LOTTIE_SYNC_DIR_PATH, uuid, 'data.json');
-    const lottieJsonFile = await fs.readFile(lottieJsonPath, 'utf-8');
-    const lottieJson: LottieJson = JSON.parse(lottieJsonFile);
+    const outPoint = await toggleLottieLayer(uuid, dbLottieFile[0].id, Number(layerIndex));
 
-    const dbLayer = await db
-      .select()
-      .from(lottieLayer)
-      .where(
-        and(
-          eq(lottieLayer.fileId, dbLottieFile[0].id),
-          eq(lottieLayer.layerIndex, Number(layerIndex))
-        )
-      );
-
-    if (dbLayer.length === 0) {
+    if (!outPoint) {
       res.status(404).json({ error: 'Not found' });
       return;
     }
-
-    const layer = lottieJson.layers.find(layer => layer.ind === Number(layerIndex));
-
-    if (!layer) {
-      res.status(404).json({ error: 'Not found' });
-      return;
-    }
-
-    // In point is the layer's start time, out point is the layer's end time.
-    // To toggle the layer, we use layer's out point, we set it to the layer's in point for the layer to be invisible.
-    // And we save the previous out point in the database, in order to restore the layer's visibility back to its original state.
-    // 'Visible' layer wouldn't have the same out point as the in point.
-
-    const outPoint = layer.op === layer.ip ? dbLayer[0].outPoint : layer.ip;
-
-    await db
-      .update(lottieLayer)
-      .set({ outPoint: layer.op })
-      .where(eq(lottieLayer.id, dbLayer[0].id));
-
-    lottieJson.layers = lottieJson.layers.map(layer => {
-      if (layer.ind === Number(layerIndex)) {
-        return { ...layer, op: outPoint };
-      }
-      return layer;
-    });
-
-    await fs.writeFile(lottieJsonPath, JSON.stringify(lottieJson));
 
     res.json({ op: outPoint });
   }
@@ -366,9 +353,9 @@ class LottieSyncController {
       return;
     }
 
-    const lottieFileDirPath = path.join(Config.LOTTIE_SYNC_DIR_PATH, uuid);
+    const lottieFileDirPath = path.join(Config.LOTTIE_DIR_PATH, uuid);
 
-    const lottieJsonPath = path.join(Config.LOTTIE_SYNC_DIR_PATH, uuid, 'data.json');
+    const lottieJsonPath = path.join(Config.LOTTIE_DIR_PATH, uuid, 'data.json');
     const lottieJsonFile = await fs.readFile(lottieJsonPath, 'utf-8');
     const lottieJson: LottieJson = JSON.parse(lottieJsonFile);
 
@@ -431,7 +418,7 @@ class LottieSyncController {
       .from(lottieLayer)
       .where(eq(lottieLayer.fileId, dbLottieFile[0].id));
 
-    const lottieJsonPath = path.join(Config.LOTTIE_SYNC_DIR_PATH, uuid, 'data.json');
+    const lottieJsonPath = path.join(Config.LOTTIE_DIR_PATH, uuid, 'data.json');
     const lottieJsonFile = await fs.readFile(lottieJsonPath, 'utf-8');
     const lottieJson: LottieJson = JSON.parse(lottieJsonFile);
 
@@ -459,43 +446,15 @@ class LottieSyncController {
       return;
     }
 
-    const lottieJsonPath = path.join(Config.LOTTIE_SYNC_DIR_PATH, uuid, 'data.json');
-    const lottieJsonFile = await fs.readFile(lottieJsonPath, 'utf-8');
-    const lottieJson: LottieJson = JSON.parse(lottieJsonFile);
+    const updatedLottieLayer = await updateLottieLayer(uuid, layerIndex, value);
 
-    const layer = lottieJson.layers.find(layer => layer.ind === Number(layerIndex));
-
-    if (!layer) {
+    if (!updatedLottieLayer) {
       res.status(404).json({ error: 'Not found' });
       return;
     }
-
-    if (layer.ty === 5 && layer.t) {
-      layer.t.d.k[0].s.t = value;
-    } else if (layer.ty === 2 && layer.refId) {
-      const asset = lottieJson.assets?.find(a => a.id === layer.refId);
-      if (!asset) {
-        res.status(404).json({ error: 'Not found' });
-        return;
-      }
-
-      if (isLottieAssetImage(asset)) {
-        const imageName = asset.p.split('/').pop();
-        if (!imageName) {
-          res.status(404).json({ error: 'Not found' });
-          return;
-        }
-
-        const imagePath = path.join(Config.LOTTIE_SYNC_DIR_PATH, uuid, 'assets', imageName);
-        const buffer = Buffer.from(value, 'base64');
-        await fs.writeFile(imagePath, buffer);
-      }
-    }
-
-    await fs.writeFile(lottieJsonPath, JSON.stringify(lottieJson));
 
     res.json({ message: 'Layer updated successfully' });
   }
 }
 
-export default LottieSyncController;
+export default LottieController;

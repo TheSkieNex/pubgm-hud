@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '@/lib/api';
+import { API_URL } from '@/lib/api';
 import type { Table, Team, TeamPlayer } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
@@ -84,7 +84,7 @@ const TeamComponent = ({
         <div className="w-[42px] h-full flex items-center justify-center">
           <div
             className="w-7 h-7 bg-contain bg-center bg-no-repeat"
-            style={{ backgroundImage: `url(${API_BASE_URL}/tables/${tableUUID}/${teamId}.png)` }}
+            style={{ backgroundImage: `url(${API_URL}/tables/${tableUUID}/${teamId}.png)` }}
           ></div>
         </div>
         <div className="ml-2 font-bold">{tag.toUpperCase()}</div>
@@ -99,10 +99,10 @@ const TeamComponent = ({
               <div
                 className={cn(
                   'w-[3px] h-[26px] transition-all duration-300',
-                  player.liveState === 1 ? 'bg-table-yellow' : 'bg-red-500',
-                  player.bHasDied && 'bg-transparent'
+                  player.liveState === 4 ? 'bg-red-500' : 'bg-table-green',
+                  player.health === 0 && 'bg-transparent'
                 )}
-                style={player.liveState === 1 ? { height: `${player.health}%` } : {}}
+                style={player.health !== 0 ? { height: `${player.health}%` } : {}}
               ></div>
             </div>
           ))}
@@ -118,7 +118,7 @@ const FooterComponent = () => {
   return (
     <div className="w-full h-[26px] flex items-center gap-5 bg-table-dark text-white text-[10px] leading-[10px] font-bold px-9">
       <div className="flex items-center">
-        <div className="w-[8px] h-[8px] bg-table-yellow rounded-[2px]"></div>
+        <div className="w-[8px] h-[8px] bg-table-green rounded-[2px]"></div>
         <p className="ml-1">ALIVE</p>
       </div>
       <div className="flex items-center">

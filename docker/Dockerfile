@@ -8,11 +8,16 @@ RUN apt-get update && apt-get install -y \
     sqlite3 \
     && rm -rf /var/lib/apt/lists/*
 
-COPY package.json .
+COPY package*.json ./
 
 RUN npm install
 
+ENV NODE_ENV=production
+
 COPY . .
+
+RUN npm run db:generate
+RUN npm run db:push
 
 RUN npm run build
 

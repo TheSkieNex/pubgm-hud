@@ -5,7 +5,10 @@ import { Server } from 'socket.io';
 let io: Server;
 
 export function initSocket(server: HttpServer) {
-  io = new Server(server);
+  io = new Server(server, {
+    path: '/socket.io',
+    cors: { origin: true },
+  });
 }
 
 export function getSocket() {

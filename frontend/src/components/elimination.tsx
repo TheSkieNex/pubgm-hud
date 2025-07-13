@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-import { API_BASE_URL } from '@/lib/api';
+import { API_URL } from '@/lib/api';
 import type { TeamEliminated } from '@/lib/types';
 
 const LeftComponent = ({ logoPath }: { logoPath: string }) => {
@@ -9,7 +9,7 @@ const LeftComponent = ({ logoPath }: { logoPath: string }) => {
     <div className="w-[100px] h-[100px] flex items-center justify-center bg-white">
       <div
         className="w-16 h-16 bg-contain bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${API_BASE_URL}${logoPath})` }}
+        style={{ backgroundImage: `url(${API_URL}${logoPath})` }}
       ></div>
     </div>
   );

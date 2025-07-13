@@ -6,17 +6,15 @@ if [ -f /pubgm-hud/.env ]; then
 else
     # Set default values if .env doesn't exist
     DOMAIN=${DOMAIN:-localhost}
+    EMAIL=${EMAIL:-your-email@example.com}
 fi
 set +a
-
-# Create certbot webroot directory
-mkdir -p /var/www/certbot
 
 # Generate nginx configuration
 envsubst '$DOMAIN' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
 
-# Start nginx in background
-nginx
+# Kill any existing nginx processes (just in case)
+pkill nginx 2>/dev/null
 
 # Generate SSL certificate if DOMAIN is not localhost
 if [ "$DOMAIN" != "localhost" ] && [ "$DOMAIN" != "127.0.0.1" ]; then
@@ -25,7 +23,7 @@ if [ "$DOMAIN" != "localhost" ] && [ "$DOMAIN" != "127.0.0.1" ]; then
     # Check if certificate already exists
     if [ ! -f "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ]; then
         echo "Certificate not found. Generating new certificate..."
-        certbot certonly --webroot -w /var/www/certbot -d "$DOMAIN" -d "api.$DOMAIN" --non-interactive --agree-tos --email admin@$DOMAIN
+        certbot certonly --standalone --non-interactive --agree-tos --email $EMAIL -d $DOMAIN
     else
         echo "Certificate already exists. Renewing if necessary..."
         certbot renew --quiet
@@ -35,5 +33,5 @@ if [ "$DOMAIN" != "localhost" ] && [ "$DOMAIN" != "127.0.0.1" ]; then
     nginx -s reload
 fi
 
-# Keep container running
-exec "$@"
+# Start nginx in the foreground (this keeps the container running)
+exec nginx -g 'daemon off;'

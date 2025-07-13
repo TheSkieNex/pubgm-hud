@@ -13,6 +13,8 @@ services:
       - 3011:3011
     volumes:
       - ../.env:/pubgm-hud/.env
+      - pubgm-hud-static:/pubgm-hud/static
+      - pubgm-hud-db:/pubgm-hud/database_storage
 
   frontend:
     build:
@@ -27,5 +29,10 @@ services:
       - api
     volumes:
       - ../.env:/pubgm-hud/.env
+      - /etc/letsencrypt:/etc/letsencrypt
     environment:
       - DOMAIN=${DOMAIN:-localhost}
+
+volumes:
+  pubgm-hud-db:
+  pubgm-hud-static:

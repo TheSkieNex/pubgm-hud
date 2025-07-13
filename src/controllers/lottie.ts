@@ -20,7 +20,7 @@ import {
   toggleLottieLayer,
   updateLottieLayer,
 } from '../lib/utils';
-import { getLayersData } from '../utils/lottie-sync';
+import { getLayersData } from '../utils/lottie';
 
 interface UploadRequest {
   source: string;
@@ -42,7 +42,7 @@ interface UpdateLayerRequest {
   value: string;
 }
 
-class LottieSyncController {
+class LottieController {
   @errorHandler()
   static async get(req: Request, res: Response): Promise<void> {
     const { uuid } = req.params;
@@ -67,7 +67,7 @@ class LottieSyncController {
       .from(lottieLayer)
       .where(eq(lottieLayer.fileId, dbLottieFile[0].id));
 
-    const lottieDataDirPath = path.join(Config.LOTTIE_SYNC_DIR_PATH, dbLottieFile[0].uuid);
+    const lottieDataDirPath = path.join(Config.LOTTIE_DIR_PATH, dbLottieFile[0].uuid);
     const lottieJsonFile = await fs.readFile(path.join(lottieDataDirPath, 'data.json'), 'utf-8');
     const configFilePath = path.join(lottieDataDirPath, 'config.js');
     const configFile = await fs.readFile(configFilePath, 'utf-8');
@@ -85,7 +85,7 @@ class LottieSyncController {
     const data = {
       name: dbLottieFile[0].name,
       uuid: dbLottieFile[0].uuid,
-      url: `${Config.HOST}/${Config.LOTTIE_SYNC_DIR}/${dbLottieFile[0].uuid}/index.html`,
+      url: `${Config.HOST}/${Config.LOTTIE_DIR}/${dbLottieFile[0].uuid}/index.html`,
       lottieJson: JSON.parse(lottieJsonFile),
       selectedLayerIndices: selectedLayers.map(l => l.layerIndex),
       config: configData,
@@ -108,7 +108,7 @@ class LottieSyncController {
       name: file.name,
       createdAt: file.createdAt,
       updatedAt: file.updatedAt,
-      url: `${Config.HOST}/${Config.LOTTIE_SYNC_DIR}/${file.uuid}/index.html`,
+      url: `${Config.HOST}/${Config.LOTTIE_DIR}/${file.uuid}/index.html`,
     }));
 
     res.json(data);
@@ -131,7 +131,7 @@ class LottieSyncController {
       })
       .returning();
 
-    const destDirPath = path.join(Config.LOTTIE_SYNC_DIR_PATH, dbLottieFile[0].uuid);
+    const destDirPath = path.join(Config.LOTTIE_DIR_PATH, dbLottieFile[0].uuid);
     await fs.mkdir(destDirPath, { recursive: true });
 
     const assetsDirPath = path.join(destDirPath, 'assets');
@@ -210,7 +210,7 @@ class LottieSyncController {
       await db.update(lottieFile).set({ name: fileName }).where(eq(lottieFile.uuid, uuid));
     }
 
-    const lottieFileDirPath = path.join(Config.LOTTIE_SYNC_DIR_PATH, dbLottieFile[0].uuid);
+    const lottieFileDirPath = path.join(Config.LOTTIE_DIR_PATH, dbLottieFile[0].uuid);
 
     const lottieJsonPath = path.join(lottieFileDirPath, 'data.json');
     const lottieJson: LottieJson = JSON.parse(await fs.readFile(lottieJsonPath, 'utf-8'));
@@ -303,7 +303,7 @@ class LottieSyncController {
       return;
     }
 
-    const dataDirPath = path.join(Config.LOTTIE_SYNC_DIR_PATH, uuid);
+    const dataDirPath = path.join(Config.LOTTIE_DIR_PATH, uuid);
 
     await db.delete(lottieFile).where(eq(lottieFile.uuid, uuid));
     await fs.rm(dataDirPath, { recursive: true });
@@ -353,9 +353,9 @@ class LottieSyncController {
       return;
     }
 
-    const lottieFileDirPath = path.join(Config.LOTTIE_SYNC_DIR_PATH, uuid);
+    const lottieFileDirPath = path.join(Config.LOTTIE_DIR_PATH, uuid);
 
-    const lottieJsonPath = path.join(Config.LOTTIE_SYNC_DIR_PATH, uuid, 'data.json');
+    const lottieJsonPath = path.join(Config.LOTTIE_DIR_PATH, uuid, 'data.json');
     const lottieJsonFile = await fs.readFile(lottieJsonPath, 'utf-8');
     const lottieJson: LottieJson = JSON.parse(lottieJsonFile);
 
@@ -418,7 +418,7 @@ class LottieSyncController {
       .from(lottieLayer)
       .where(eq(lottieLayer.fileId, dbLottieFile[0].id));
 
-    const lottieJsonPath = path.join(Config.LOTTIE_SYNC_DIR_PATH, uuid, 'data.json');
+    const lottieJsonPath = path.join(Config.LOTTIE_DIR_PATH, uuid, 'data.json');
     const lottieJsonFile = await fs.readFile(lottieJsonPath, 'utf-8');
     const lottieJson: LottieJson = JSON.parse(lottieJsonFile);
 
@@ -457,4 +457,4 @@ class LottieSyncController {
   }
 }
 
-export default LottieSyncController;
+export default LottieController;

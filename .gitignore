@@ -10,7 +10,7 @@ database.db
 
 logs/
 
-static/lottie-sync/
+static/lottie/
 static/tables/
 
 SSL_SETUP.md

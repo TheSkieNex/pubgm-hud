@@ -193,7 +193,7 @@ class CustomController {
     }
 
     if (team.players.length === 4) {
-      const lottieJsonPath = path.join(Config.LOTTIE_SYNC_DIR_PATH, file_uuid, 'data.json');
+      const lottieJsonPath = path.join(Config.LOTTIE_DIR_PATH, file_uuid, 'data.json');
       const lottieJsonFile = await fs.readFile(lottieJsonPath, 'utf-8');
       const lottieJson: LottieJson = JSON.parse(lottieJsonFile);
 

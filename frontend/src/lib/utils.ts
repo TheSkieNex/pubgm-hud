@@ -8,6 +8,11 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export const fetcher = async (url: string, options: RequestInit = {}) => {
+  const res = await fetch(`${ROUTER_URL}${url}`, options);
+  return res.json();
+};
+
 interface TableResponse {
   table: Table;
   teams: Team[];

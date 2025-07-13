@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { EllipsisVertical, Clipboard } from 'lucide-react';
 import { toast } from 'sonner';
+import { EllipsisVertical, Clipboard } from 'lucide-react';
 
 import type { Table } from '@/lib/types';
-import { ROUTER_URL } from '@/lib/api';
+import { fetcher } from '@/lib/utils';
 
 import {
   DropdownMenu,
@@ -11,14 +11,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { ListWrapper } from '@/components/list-wrapper';
 
-export default function TablesPage() {
+export const TablesPage = () => {
   const [tables, setTables] = useState<Table[]>([]);
 
   useEffect(() => {
     const fetchTables = async () => {
-      const res = await fetch(`${ROUTER_URL}/tables`);
-      const data = await res.json();
+      const data = await fetcher('/tables');
       setTables(data);
     };
     fetchTables();
@@ -32,7 +32,7 @@ export default function TablesPage() {
   return (
     <div className="w-full h-full flex flex-col items-center justify-center gap-4 p-4">
       <h1 className="text-2xl font-bold">Tables</h1>
-      <div className="w-full h-full grid grid-cols-3 items-start gap-4">
+      <ListWrapper>
         {tables.map(table => (
           <div
             key={table.uuid}
@@ -66,7 +66,9 @@ export default function TablesPage() {
             </DropdownMenu>
           </div>
         ))}
-      </div>
+      </ListWrapper>
     </div>
   );
-}
+};
+
+export default TablesPage;

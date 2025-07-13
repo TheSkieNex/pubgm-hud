@@ -7,7 +7,13 @@ export default function Page() {
           href="/tables"
           className="p-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100"
         >
-          All tables
+          Tables
+        </a>
+        <a
+          href="/lottie-files"
+          className="p-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100"
+        >
+          Lottie Files
         </a>
       </div>
     </div>

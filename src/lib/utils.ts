@@ -10,7 +10,7 @@ import { isLottieAssetImage } from './lottie';
 import { LottieJson } from './lottie';
 
 export async function prepareLottieBuildSource() {
-  const buildFile = path.join(Config.LOTTIE_SYNC_DIR_PATH, '_utils', 'lottie.js');
+  const buildFile = path.join(Config.LOTTIE_DIR_PATH, '_utils', 'lottie.js');
   const buildDir = path.dirname(buildFile);
 
   const commitSHA = '507be7fa7fbf748962dd7b1b190d99cc9cf6079b';
@@ -27,7 +27,7 @@ export async function prepareLottieBuildSource() {
 }
 
 export async function copyLottieTemplates(destDirPath: string) {
-  const templatesDirPath = path.join(Config.BASE_DIR, 'templates', 'lottie-sync');
+  const templatesDirPath = path.join(Config.BASE_DIR, 'templates', 'lottie');
   const templateFiles = await fs.readdir(templatesDirPath);
   const templateFilesWithPath = templateFiles.map(file => path.join(templatesDirPath, file));
 
@@ -38,7 +38,7 @@ export async function copyLottieTemplates(destDirPath: string) {
 }
 
 export async function updateLottieLayer(uuid: string, layerIndex: number, value: string) {
-  const lottieJsonPath = path.join(Config.LOTTIE_SYNC_DIR_PATH, uuid, 'data.json');
+  const lottieJsonPath = path.join(Config.LOTTIE_DIR_PATH, uuid, 'data.json');
   const lottieJsonFile = await fs.readFile(lottieJsonPath, 'utf-8');
   const lottieJson: LottieJson = JSON.parse(lottieJsonFile);
 
@@ -62,7 +62,7 @@ export async function updateLottieLayer(uuid: string, layerIndex: number, value:
         return null;
       }
 
-      const imagePath = path.join(Config.LOTTIE_SYNC_DIR_PATH, uuid, 'assets', imageName);
+      const imagePath = path.join(Config.LOTTIE_DIR_PATH, uuid, 'assets', imageName);
       const buffer = Buffer.from(value, 'base64');
       await fs.writeFile(imagePath, buffer);
     }
@@ -79,7 +79,7 @@ export async function toggleLottieLayer(
   layerIndex: number,
   hide?: boolean
 ) {
-  const lottieJsonPath = path.join(Config.LOTTIE_SYNC_DIR_PATH, uuid, 'data.json');
+  const lottieJsonPath = path.join(Config.LOTTIE_DIR_PATH, uuid, 'data.json');
   const lottieJsonFile = await fs.readFile(lottieJsonPath, 'utf-8');
   const lottieJson: LottieJson = JSON.parse(lottieJsonFile);
 

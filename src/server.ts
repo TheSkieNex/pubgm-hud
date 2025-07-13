@@ -32,7 +32,7 @@ app.use(authMiddleware);
 
 app.use(express.static(Config.STATIC_DIR));
 
-app.use('/lottie-sync', express.static(Config.LOTTIE_SYNC_DIR_PATH));
+app.use('/lottie', express.static(Config.LOTTIE_DIR_PATH));
 app.use('/tables', express.static(Config.TABLES_DIR));
 
 app.use('/router', router);

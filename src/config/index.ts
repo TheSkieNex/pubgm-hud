@@ -31,8 +31,8 @@ class Config {
 
   public static readonly TABLES_DIR = path.join(this.STATIC_DIR, 'tables');
 
-  public static readonly LOTTIE_SYNC_DIR = 'lottie-sync';
-  public static readonly LOTTIE_SYNC_DIR_PATH = path.join(this.STATIC_DIR, this.LOTTIE_SYNC_DIR);
+  public static readonly LOTTIE_DIR = 'lottie';
+  public static readonly LOTTIE_DIR_PATH = path.join(this.STATIC_DIR, this.LOTTIE_DIR);
 
   public static readonly DB_PATH = isProduction
     ? path.join(this.BASE_DIR, 'database_storage', 'database.db')

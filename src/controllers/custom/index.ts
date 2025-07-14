@@ -11,6 +11,7 @@ import {
   CustomUpdateWWCDTeamRequest,
   CustomUpdateMatchResultRequest,
   CustomUpdateOverallResultsAbsoluteRequest,
+  CustomUpdateMapRotationRequest,
 } from './types';
 import { lottieFile, lottieLayer } from '../../db/schemas/lottie-file';
 import { table, team as dbTeam } from '../../db/schemas/table';
@@ -246,6 +247,7 @@ class CustomController {
       .from(lottieLayer)
       .where(eq(lottieLayer.fileId, dbLottieFile[0].id));
 
+    // Sorting teams by total points and placement
     const sortedTeams = teams
       .map(team => {
         const placementPoints =
@@ -260,8 +262,10 @@ class CustomController {
         return a.placement - b.placement;
       });
 
+    // Getting the first 16 teams
     const first16Teams = sortedTeams.slice(0, 16);
 
+    // Updating the first 16 teams
     for (const [index, team] of first16Teams.entries()) {
       await updateTeamList(
         file_uuid,
@@ -597,6 +601,152 @@ class CustomController {
       );
     }
 
+    res.status(200).json({ message: 'Success' });
+  }
+
+  @errorHandler()
+  static async updateMapView(req: Request, res: Response): Promise<void> {
+    const { file_uuid, table_uuid } = req.body as CustomUpdateWWCDTeamRequest;
+
+    if (!file_uuid || !table_uuid) {
+      res.status(404).json({ error: 'Body parameters are missing' });
+      return;
+    }
+
+    const dbTable = await db.select().from(table).where(eq(table.uuid, table_uuid));
+
+    if (dbTable.length === 0) {
+      res.status(404).json({ error: 'Table not found' });
+      return;
+    }
+
+    const dbLottieFile = await db.select().from(lottieFile).where(eq(lottieFile.uuid, file_uuid));
+
+    if (dbLottieFile.length === 0) {
+      res.status(404).json({ error: 'Lottie file not found' });
+      return;
+    }
+
+    const dbLottieLayers = await db
+      .select()
+      .from(lottieLayer)
+      .where(eq(lottieLayer.fileId, dbLottieFile[0].id));
+
+    // Updating the match number
+    const lottieJsonPath = path.join(Config.LOTTIE_DIR_PATH, file_uuid, 'data.json');
+    const lottieJsonFile = await fs.readFile(lottieJsonPath, 'utf-8');
+    const lottieJson: LottieJson = JSON.parse(lottieJsonFile);
+
+    const matchNumberLayer = dbLottieLayers.find(layer => layer.name === 'DAY 1 MAP 1/5');
+    const matchNumber = lottieJson.layers.find(layer => layer.ind === matchNumberLayer!.layerIndex);
+
+    if (matchNumber) {
+      // Extract the number from the current match text, increment it, and update the text
+      const matchText = matchNumber.t!.d.k[0].s.t;
+      // Match the pattern "DAY X MAP Y/Z" and increment Y
+      const matchNumberMatch = matchText.match(/(DAY\s*\d+\s*MAP\s*)(\d+)\/(\d+)/i);
+      if (matchNumberMatch) {
+        const prefix = matchNumberMatch[1];
+        const currentMap = parseInt(matchNumberMatch[2], 10);
+        const totalMaps = matchNumberMatch[3];
+        const newMap = Math.min(currentMap + 1, parseInt(totalMaps, 10));
+        const newText = `${prefix}${newMap}/${totalMaps}`;
+        await updateLottieLayer(file_uuid, matchNumberLayer!.layerIndex, newText);
+      }
+    }
+
+    res.status(200).json({ message: 'Success' });
+  }
+
+  @errorHandler()
+  static async updateMapRotation(req: Request, res: Response): Promise<void> {
+    const { file_uuid, table_uuid, team, match_results_uuid } =
+      req.body as CustomUpdateMapRotationRequest;
+
+    if (!file_uuid || !table_uuid || !match_results_uuid) {
+      res.status(404).json({ error: 'Body parameters are missing' });
+      return;
+    }
+
+    const dbTable = await db.select().from(table).where(eq(table.uuid, table_uuid));
+
+    if (dbTable.length === 0) {
+      res.status(404).json({ error: 'Table not found' });
+      return;
+    }
+
+    const dbLottieFile = await db.select().from(lottieFile).where(eq(lottieFile.uuid, file_uuid));
+
+    if (dbLottieFile.length === 0) {
+      res.status(404).json({ error: 'Lottie file not found' });
+      return;
+    }
+
+    const dbMatchResultsLottieFile = await db
+      .select()
+      .from(lottieFile)
+      .where(eq(lottieFile.uuid, match_results_uuid));
+
+    if (dbMatchResultsLottieFile.length === 0) {
+      res.status(404).json({ error: 'Match results lottie file not found' });
+      return;
+    }
+
+    const dbLottieLayers = await db
+      .select()
+      .from(lottieLayer)
+      .where(eq(lottieLayer.fileId, dbLottieFile[0].id));
+
+    const dbMatchResultsLottieLayers = await db
+      .select()
+      .from(lottieLayer)
+      .where(eq(lottieLayer.fileId, dbMatchResultsLottieFile[0].id));
+
+    const matchResultsJsonPath = path.join(Config.LOTTIE_DIR_PATH, match_results_uuid, 'data.json');
+    const matchResultsJsonFile = await fs.readFile(matchResultsJsonPath, 'utf-8');
+    const matchResultsJson: LottieJson = JSON.parse(matchResultsJsonFile);
+
+    const matchNumberLayer = dbMatchResultsLottieLayers.find(layer => layer.name === 'WEEK');
+    const matchNumber = matchResultsJson.layers.find(
+      layer => layer.ind === matchNumberLayer!.layerIndex
+    );
+
+    if (matchNumber) {
+      const matchText = matchNumber.t!.d.k[0].s.t;
+      const matchNumberMatch = matchText.match(/(\d+)$/);
+      const currentMatchNumber = matchNumberMatch ? parseInt(matchNumberMatch[1], 10) : 0;
+      const newMatchNumber = currentMatchNumber + 1;
+
+      // Updating the match number in the match results
+      await updateLottieLayer(
+        match_results_uuid,
+        matchNumberLayer!.layerIndex,
+        `MATCH ${newMatchNumber}`
+      );
+
+      // Updating the team logo in the map rotation
+      const teamLogoPath = path.join(
+        Config.TABLES_DIR,
+        dbTable[0].uuid,
+        `${dbTable[0].largeLogoSize}x${dbTable[0].largeLogoSize}`,
+        `${team.id}.png`
+      );
+      const teamLogo = await fs.readFile(teamLogoPath);
+      const teamLogoBase64 = teamLogo.toString('base64');
+
+      // Updating logo
+      const teamLogoLayer = dbLottieLayers.find(
+        layer => layer.name === `MAP_${newMatchNumber}_TEAM`
+      );
+      await updateLottieLayer(file_uuid, teamLogoLayer!.layerIndex, teamLogoBase64);
+
+      const teamLogoBGLayer = dbLottieLayers.find(
+        layer => layer.name === `MAP_${newMatchNumber}_TEAM_BG`
+      );
+
+      await toggleLottieLayer(file_uuid, dbLottieFile[0].id, teamLogoLayer!.layerIndex, false);
+      await toggleLottieLayer(file_uuid, dbLottieFile[0].id, teamLogoBGLayer!.layerIndex, false);
+    }
     res.status(200).json({ message: 'Success' });
   }
 }

@@ -41,3 +41,7 @@ export interface CustomUpdateOverallResultsAbsoluteRequest {
   table_uuid: string;
   teams: OverallResultsTeam[];
 }
+
+export interface CustomUpdateMapRotationRequest extends CustomUpdateWWCDTeamRequest {
+  match_results_uuid: string;
+}

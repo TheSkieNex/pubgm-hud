@@ -16,5 +16,7 @@ customRouter.delete(
   '/:tableUUID/reset-overall-results/:fileUUID',
   CustomController.resetOverallResults
 );
+customRouter.put('/update-map-view', CustomController.updateMapView);
+customRouter.put('/update-map-rotation', CustomController.updateMapRotation);
 
 export default customRouter;

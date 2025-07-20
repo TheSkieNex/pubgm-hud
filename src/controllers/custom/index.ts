@@ -14,7 +14,7 @@ import {
   CustomUpdateMapRotationRequest,
 } from './types';
 import { lottieFile, lottieLayer } from '../../db/schemas/lottie-file';
-import { table, team as dbTeam } from '../../db/schemas/table';
+import { table, team as dbTeam, teamPoint } from '../../db/schemas/table';
 import { overallResultsPoints } from '../../db/schemas/custom';
 import { errorHandler } from '../../lib/decorators/error-handler';
 import { updateLottieLayer, toggleLottieLayer } from '../../lib/utils';
@@ -280,6 +280,30 @@ class CustomController {
         dbTable,
         dbLottieLayers
       );
+    }
+
+    // Updating team points by adding placement points only, because eliminations are already added
+    for (const team of teams) {
+      const placementPoints = PLACEMENT_POINTS[team.placement as keyof typeof PLACEMENT_POINTS] || 0;
+
+      const dbTeamPoints = await db
+        .select()
+        .from(teamPoint)
+        .where(and(eq(teamPoint.tableId, dbTable[0].id), eq(teamPoint.teamId, team.id)));
+
+      // Team points are created for all teams that are sent in init request so all teams will have points
+      if (dbTeamPoints.length === 0) return;
+
+      await db
+        .update(teamPoint)
+        .set({ points: dbTeamPoints[0].points + placementPoints })
+        .where(and(eq(teamPoint.tableId, dbTable[0].id), eq(teamPoint.teamId, team.id)));
+
+      // Resetting match elims to 0, because the match is already finished
+      await db
+        .update(dbTeam)
+        .set({ matchElims: 0 })
+        .where(and(eq(dbTeam.tableId, dbTable[0].id), eq(dbTeam.teamId, team.id)));
     }
 
     res.status(200).json({ message: 'Success' });
@@ -747,6 +771,7 @@ class CustomController {
       await toggleLottieLayer(file_uuid, dbLottieFile[0].id, teamLogoLayer!.layerIndex, false);
       await toggleLottieLayer(file_uuid, dbLottieFile[0].id, teamLogoBGLayer!.layerIndex, false);
     }
+
     res.status(200).json({ message: 'Success' });
   }
 }

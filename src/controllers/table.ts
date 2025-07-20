@@ -201,7 +201,7 @@ class TableController {
         const dbTeamPoint = await db
           .select()
           .from(teamPoint)
-          .where(eq(teamPoint.dbTeamId, dbTeam[0].id))
+          .where(and(eq(teamPoint.dbTeamId, dbTeam[0].id), eq(teamPoint.tableId, dbTable[0].id)))
           .limit(1);
 
         await db
@@ -209,9 +209,12 @@ class TableController {
           .set({
             points: dbTeamPoint[0].points + (killNum - dbTeam[0].matchElims),
           })
-          .where(eq(teamPoint.teamId, dbTeam[0].id));
+          .where(and(eq(teamPoint.dbTeamId, dbTeam[0].id), eq(teamPoint.tableId, dbTable[0].id)));
 
-        await db.update(team).set({ matchElims: killNum }).where(eq(team.teamId, teamId));
+        await db
+          .update(team)
+          .set({ matchElims: killNum })
+          .where(and(eq(team.teamId, teamId), eq(team.tableId, dbTable[0].id)));
       }
 
       teamsData.push({
@@ -278,7 +281,10 @@ class TableController {
     for (const [teamId, players] of playersByTeam) {
       const allPlayersDead = players.every(player => player.health === 0);
       if (allPlayersDead) {
-        const dbTeam = await db.select().from(team).where(eq(team.teamId, teamId));
+        const dbTeam = await db
+          .select()
+          .from(team)
+          .where(and(eq(team.teamId, teamId), eq(team.tableId, dbTable[0].id)));
         if (dbTeam.length === 0) continue;
 
         eliminatedTeams.push({
@@ -293,7 +299,10 @@ class TableController {
 
     const unpresentTeams = presentTeams.filter(team => !playersByTeam.has(team.teamId));
     for (const t of unpresentTeams) {
-      const dbTeam = await db.select().from(team).where(eq(team.teamId, t.teamId));
+      const dbTeam = await db
+        .select()
+        .from(team)
+        .where(and(eq(team.teamId, t.teamId), eq(team.tableId, dbTable[0].id)));
       if (dbTeam.length === 0) continue;
 
       eliminatedTeams.push({

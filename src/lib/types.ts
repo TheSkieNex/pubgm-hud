@@ -1,3 +1,5 @@
+import type * as express from 'express';
+
 export interface ApiResponse<T = unknown> {
   code: number;
   message: string;
@@ -9,5 +11,11 @@ export interface LottieFileConfig {
     renderer: 'svg' | 'canvas' | 'html';
     loop: boolean;
     autoplay: boolean;
+  };
+}
+
+export interface AuthorizedRequest extends express.Request {
+  user: {
+    id: number;
   };
 }

@@ -13,7 +13,8 @@
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "empty-tables": "tsx scripts/empty-tables.ts",
-    "reset-elims": "tsx scripts/reset-elims.ts"
+    "reset-elims": "tsx scripts/reset-elims.ts",
+    "cli": "ts-node src/cli.ts"
   },
   "author": "CCXLV",
   "license": "MIT",
@@ -22,6 +23,7 @@
     "@types/better-sqlite3": "^7.6.13",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.2",
+    "@types/jsonwebtoken": "^9.0.10",
     "drizzle-kit": "^0.31.1",
     "eslint": "^9.28.0",
     "eslint-config-prettier": "^10.1.5",
@@ -35,11 +37,14 @@
   },
   "dependencies": {
     "better-sqlite3": "^11.10.0",
+    "commander": "^14.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "drizzle-orm": "^0.44.1",
     "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
     "socket.io": "^4.8.1",
-    "winston": "^3.17.0"
+    "winston": "^3.17.0",
+    "zod": "^4.0.8"
   }
 }

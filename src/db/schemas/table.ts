@@ -6,7 +6,7 @@ export const table = sqliteTable('tables', {
   uuid: text('uuid').notNull(),
   name: text('name').notNull(),
   largeLogoSize: integer('large_logo_size').notNull(),
-  createdAt: integer('created_at', { mode: 'timestamp' })
+  createdAt: text('created_at')
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
 });

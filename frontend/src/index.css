@@ -128,3 +128,18 @@
 }
 
 @config '../tailwind.config.ts';
+
+@theme {
+  --animate-slide-up: slide-up 200ms ease-in-out;
+
+  @keyframes slide-up {
+    0% {
+      opacity: 0;
+      transform: translateY(25px) scale(0.98);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+}

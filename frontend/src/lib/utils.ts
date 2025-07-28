@@ -1,7 +1,7 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
-import { ROUTER_URL } from './api';
+import { API_ROUTER_URL } from './api';
 import type { Table, Team } from './types';
 
 export function cn(...inputs: ClassValue[]) {
@@ -9,7 +9,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const fetcher = async (url: string, options: RequestInit = {}) => {
-  const res = await fetch(`${ROUTER_URL}${url}`, options);
+  const res = await fetch(`${API_ROUTER_URL}${url}`, options);
   return res.json();
 };
 
@@ -19,7 +19,7 @@ interface TableResponse {
 }
 
 export const fetchTable = async (uuid: string): Promise<TableResponse> => {
-  const res = await fetch(`${ROUTER_URL}/tables/${uuid}`);
+  const res = await fetch(`${API_ROUTER_URL}/tables/${uuid}`);
   const data = await res.json();
   return {
     table: data.table,

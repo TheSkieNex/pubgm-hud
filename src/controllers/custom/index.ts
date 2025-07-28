@@ -284,7 +284,8 @@ class CustomController {
 
     // Updating team points by adding placement points only, because eliminations are already added
     for (const team of teams) {
-      const placementPoints = PLACEMENT_POINTS[team.placement as keyof typeof PLACEMENT_POINTS] || 0;
+      const placementPoints =
+        PLACEMENT_POINTS[team.placement as keyof typeof PLACEMENT_POINTS] || 0;
 
       const dbTeamPoints = await db
         .select()

@@ -1,8 +1,6 @@
-import { Request, Response } from 'express';
+import type * as express from 'express';
 
 import logger from '../../config/logger';
-
-type AsyncRequestHandler = (req: Request, res: Response) => Promise<void>;
 
 export function errorHandler() {
   return function (
@@ -10,9 +8,12 @@ export function errorHandler() {
     _propertyKey: string,
     descriptor: PropertyDescriptor
   ): PropertyDescriptor {
-    const originalMethod = descriptor.value as AsyncRequestHandler;
+    const originalMethod = descriptor.value as (
+      req: express.Request,
+      res: express.Response
+    ) => Promise<void>;
 
-    descriptor.value = async function (req: Request, res: Response): Promise<void> {
+    descriptor.value = async function (req: express.Request, res: express.Response): Promise<void> {
       try {
         await originalMethod.call(this, req, res);
       } catch (error) {

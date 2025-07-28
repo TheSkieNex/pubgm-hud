@@ -6,6 +6,7 @@ import TablePage from './pages/table/page';
 import TablesPage from './pages/tables/page';
 import EliminationPage from './pages/elimination/page';
 import LottieFilesPage from './pages/lottie-files/page';
+import { AdminPanelRouter } from './pages/admin-panel/router';
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
           <Route path="/tables" element={<TablesPage />} />
           <Route path="/elimination/:uuid" element={<EliminationPage />} />
           <Route path="/lottie-files" element={<LottieFilesPage />} />
+          <Route path="/admin/*" element={<AdminPanelRouter />} />
         </Route>
       </Routes>
     </BrowserRouter>

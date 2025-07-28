@@ -15,6 +15,12 @@ export default function Page() {
         >
           Lottie Files
         </a>
+        <a
+          href="/admin"
+          className="p-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100"
+        >
+          Admin Panel
+        </a>
       </div>
     </div>
   );

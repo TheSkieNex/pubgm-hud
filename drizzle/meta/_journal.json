@@ -1,20 +1,5 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "entries": [
-    {
-      "idx": 0,
-      "version": "6",
-      "when": 1751711551944,
-      "tag": "0000_bored_brood",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1752314141888,
-      "tag": "0001_panoramic_blue_blade",
-      "breakpoints": true
-    }
-  ]
+  "entries": []
 }

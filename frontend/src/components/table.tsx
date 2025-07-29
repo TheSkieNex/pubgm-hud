@@ -59,7 +59,10 @@ const TeamComponent = ({
 
   return (
     <motion.div
-      className="w-full h-[42px] flex border-b border-[#EDE9F7] font-circular relative"
+      className={cn(
+        'w-full h-[42px] flex border-b border-[#EDE9F7] font-circular relative',
+        eliminated && 'opacity-80!'
+      )}
       layout
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}

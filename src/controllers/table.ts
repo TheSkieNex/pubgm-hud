@@ -24,6 +24,7 @@ interface InitRequest {
     tag: string;
     logo_data: string;
     large_logo_data: string;
+    white_logo_data?: string;
   }[];
 }
 
@@ -94,6 +95,14 @@ class TableController {
       const largeLogoPath = path.join(largeLogoDirPath, `${teamData.id}.png`);
       const largeBase64Data = teamData.large_logo_data.replace(/^data:image\/\w+;base64,/, '');
       await fs.writeFile(largeLogoPath, Buffer.from(largeBase64Data, 'base64'));
+
+      if (teamData.white_logo_data) {
+        const whiteLogoDirPath = path.join(largeLogoDirPath, 'white');
+        await fs.mkdir(whiteLogoDirPath, { recursive: true });
+        const whiteLogoPath = path.join(whiteLogoDirPath, `${teamData.id}.png`);
+        const whiteBase64Data = teamData.white_logo_data.replace(/^data:image\/\w+;base64,/, '');
+        await fs.writeFile(whiteLogoPath, Buffer.from(whiteBase64Data, 'base64'));
+      }
 
       await db.insert(teamPoint).values({
         tableId: dbTable[0].id,
@@ -338,6 +347,9 @@ class TableController {
       res.status(404).json({ error: 'Table not found' });
       return;
     }
+
+    const tableDirPath = path.join(Config.STATIC_DIR, 'tables', dbTable[0].uuid);
+    await fs.rm(tableDirPath, { recursive: true });
 
     await db.delete(table).where(eq(table.uuid, uuid));
 

@@ -14,6 +14,7 @@ export const useTable = (uuid: string) => {
   const [table, setTable] = useState<Table | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
   const [teamPlayers, setTeamPlayers] = useState<TeamPlayer[]>([]);
+  const [matchFinished, setMatchFinished] = useState(false);
 
   useEffect(() => {
     const fetchTableData = async () => {
@@ -96,8 +97,14 @@ export const useTable = (uuid: string) => {
           });
         });
       });
+
+      // Check if the match is finished
+      const matchFinished = data.find(team => team.rank === 2);
+      if (matchFinished) {
+        setMatchFinished(true);
+      }
     });
   }, [uuid]);
 
-  return { table, teams, teamPlayers };
+  return { table, teams, teamPlayers, matchFinished };
 };

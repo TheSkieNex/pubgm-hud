@@ -140,11 +140,23 @@ interface TableProps {
   table: Table;
   teams: Team[];
   teamPlayers: TeamPlayer[];
+  matchFinished: boolean;
 }
 
-export const TableComponent = ({ table, teams, teamPlayers }: TableProps) => {
+export const TableComponent = ({ table, teams, teamPlayers, matchFinished }: TableProps) => {
   return (
-    <div className="w-[344px]">
+    <motion.div
+      className="w-[344px]"
+      animate={{
+        x: matchFinished ? 400 : 0,
+      }}
+      transition={{
+        type: 'spring',
+        stiffness: 100,
+        damping: 20,
+        duration: 0.8,
+      }}
+    >
       <HeaderComponent />
       <AnimatePresence mode="popLayout">
         <div className="flex flex-col">
@@ -165,6 +177,6 @@ export const TableComponent = ({ table, teams, teamPlayers }: TableProps) => {
         </div>
       </AnimatePresence>
       <FooterComponent />
-    </div>
+    </motion.div>
   );
 };

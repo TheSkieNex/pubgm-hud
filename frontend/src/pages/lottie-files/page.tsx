@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 import { Clipboard, EllipsisVertical } from 'lucide-react';
 
 import { fetcher } from '@/lib/utils';
-import { API_BASE_URL } from '@/lib/api';
+import { isProduction, API_BASE_URL } from '@/lib/api';
 
 import {
   DropdownMenu,
@@ -20,6 +20,8 @@ interface LottieFile {
   updatedAt: string;
   url: string;
 }
+
+const lottieBaseUrl = isProduction ? `${API_BASE_URL}/api/lottie` : `${API_BASE_URL}/lottie`;
 
 export const LottieFilesPage = () => {
   const [lottieFiles, setLottieFiles] = useState<LottieFile[]>([]);
@@ -47,7 +49,7 @@ export const LottieFilesPage = () => {
             className="flex items-center justify-between border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 w-full"
           >
             <a
-              href={`${API_BASE_URL}/api/lottie/${file.uuid}/index.html`}
+              href={`${lottieBaseUrl}/${file.uuid}/index.html`}
               className="flex items-start flex-1 p-2"
             >
               {file.name}
@@ -62,7 +64,7 @@ export const LottieFilesPage = () => {
                   Copy UUID
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={() => handleCopy(`${API_BASE_URL}/api/lottie/${file.uuid}/index.html`)}
+                  onClick={() => handleCopy(`${lottieBaseUrl}/${file.uuid}/index.html`)}
                 >
                   <Clipboard size={16} />
                   Copy URL

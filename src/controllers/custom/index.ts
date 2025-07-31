@@ -523,6 +523,11 @@ class CustomController {
         dbTable,
         dbLottieLayers
       );
+
+      await db
+        .update(teamPoint)
+        .set({ points: team.total })
+        .where(and(eq(teamPoint.tableId, dbTable[0].id), eq(teamPoint.teamId, team.id)));
     }
 
     res.status(200).json({ message: 'Success' });

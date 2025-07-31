@@ -47,7 +47,7 @@ export const LottieFilesPage = () => {
             className="flex items-center justify-between border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 w-full"
           >
             <a
-              href={`${API_BASE_URL}/lottie/${file.uuid}/index.html`}
+              href={`${API_BASE_URL}/api/lottie/${file.uuid}/index.html`}
               className="flex items-start flex-1 p-2"
             >
               {file.name}
@@ -62,7 +62,7 @@ export const LottieFilesPage = () => {
                   Copy UUID
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={() => handleCopy(`${API_BASE_URL}/lottie/${file.uuid}/index.html`)}
+                  onClick={() => handleCopy(`${API_BASE_URL}/api/lottie/${file.uuid}/index.html`)}
                 >
                   <Clipboard size={16} />
                   Copy URL

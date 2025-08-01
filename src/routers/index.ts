@@ -7,6 +7,10 @@ import adminRouter from './admin';
 
 const router = Router();
 
+router.use('/status', (req, res) => {
+  res.send('OK');
+});
+
 router.use('/tables', tablesRouter);
 router.use('/lottie', lottieRouter);
 router.use('/custom', customRouter);

@@ -645,60 +645,6 @@ class CustomController {
   }
 
   @errorHandler()
-  static async updateMapView(req: Request, res: Response): Promise<void> {
-    const { file_uuid, table_uuid } = req.body as CustomUpdateWWCDTeamRequest;
-
-    if (!file_uuid || !table_uuid) {
-      res.status(404).json({ error: 'Body parameters are missing' });
-      return;
-    }
-
-    const dbTable = await db.select().from(table).where(eq(table.uuid, table_uuid));
-
-    if (dbTable.length === 0) {
-      res.status(404).json({ error: 'Table not found' });
-      return;
-    }
-
-    const dbLottieFile = await db.select().from(lottieFile).where(eq(lottieFile.uuid, file_uuid));
-
-    if (dbLottieFile.length === 0) {
-      res.status(404).json({ error: 'Lottie file not found' });
-      return;
-    }
-
-    const dbLottieLayers = await db
-      .select()
-      .from(lottieLayer)
-      .where(eq(lottieLayer.fileId, dbLottieFile[0].id));
-
-    // Updating the match number
-    const lottieJsonPath = path.join(Config.LOTTIE_DIR_PATH, file_uuid, 'data.json');
-    const lottieJsonFile = await fs.readFile(lottieJsonPath, 'utf-8');
-    const lottieJson: LottieJson = JSON.parse(lottieJsonFile);
-
-    const matchNumberLayer = dbLottieLayers.find(layer => layer.name === 'DAY 1 MAP 1/5');
-    const matchNumber = lottieJson.layers.find(layer => layer.ind === matchNumberLayer!.layerIndex);
-
-    if (matchNumber) {
-      // Extract the number from the current match text, increment it, and update the text
-      const matchText = matchNumber.t!.d.k[0].s.t;
-      // Match the pattern "DAY X MAP Y/Z" and increment Y
-      const matchNumberMatch = matchText.match(/(DAY\s*\d+\s*MAP\s*)(\d+)\/(\d+)/i);
-      if (matchNumberMatch) {
-        const prefix = matchNumberMatch[1];
-        const currentMap = parseInt(matchNumberMatch[2], 10);
-        const totalMaps = matchNumberMatch[3];
-        const newMap = Math.min(currentMap + 1, parseInt(totalMaps, 10));
-        const newText = `${prefix}${newMap}/${totalMaps}`;
-        await updateLottieLayer(file_uuid, matchNumberLayer!.layerIndex, newText);
-      }
-    }
-
-    res.status(200).json({ message: 'Success' });
-  }
-
-  @errorHandler()
   static async updateMapRotation(req: Request, res: Response): Promise<void> {
     const { file_uuid, table_uuid, team, match_results_uuid } =
       req.body as CustomUpdateMapRotationRequest;

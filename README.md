@@ -42,4 +42,4 @@ Current version of the HUD has no custom endpoints, but you can add your own by 
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+For the license, see the [LICENSE](LICENSE) file.

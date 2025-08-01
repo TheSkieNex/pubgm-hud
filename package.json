@@ -12,8 +12,6 @@
     "lint": "eslint .",
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
-    "empty-tables": "tsx scripts/empty-tables.ts",
-    "reset-elims": "tsx scripts/reset-elims.ts",
     "cli": "ts-node src/cli.ts"
   },
   "author": "CCXLV",

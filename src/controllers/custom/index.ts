@@ -14,7 +14,7 @@ import {
   CustomUpdateMapRotationRequest,
 } from './types';
 import { lottieFile, lottieLayer } from '../../db/schemas/lottie-file';
-import { table, team as dbTeam, teamPoint, team } from '../../db/schemas/table';
+import { table, team as dbTeam, teamPoint } from '../../db/schemas/table';
 import { overallResultsPoints } from '../../db/schemas/custom';
 import { errorHandler } from '../../lib/decorators/error-handler';
 import { updateLottieLayer, toggleLottieLayer } from '../../lib/utils';
@@ -598,7 +598,7 @@ class CustomController {
       return;
     }
 
-    const dbTeams = await db.select().from(team).where(eq(team.tableId, dbTable[0].id));
+    const dbTeams = await db.select().from(dbTeam).where(eq(dbTeam.tableId, dbTable[0].id));
 
     await db.delete(overallResultsPoints).where(eq(overallResultsPoints.tableId, dbTable[0].id));
 

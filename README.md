@@ -46,7 +46,7 @@ Current version of the HUD has no custom endpoints, but you can add your own, yo
 
 ## Hosting
 
-You can host the HUD on your own domain. You will need to set environment variables in the `.env` file in both this base directory and `frontend` directory, based on the `.env.example` files. Then you will need to install Docker if not already installed (You can use `scripts/install-docker.sh` to install it on Ubuntu). Then you can run `docker compose up -d` to start the services.
+You can host the HUD on your own domain. You will need to set environment variables in the `.env` file in both this base directory and `frontend` directory, based on the `.env.example` files. Then you will need to install Docker if not already installed. Then you can run `docker compose up -d` to start the services.
 
 ## License
 

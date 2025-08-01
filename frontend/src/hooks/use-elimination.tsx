@@ -12,6 +12,7 @@ export const useElimination = () => {
   const eliminatedTeamsRef = useRef<Set<string>>(new Set());
 
   const [tableExists, setTableExists] = useState(false);
+  const [eliminatedTeams, setEliminatedTeams] = useState<TeamEliminated[]>([]);
   const [eliminatedTeam, setEliminatedTeam] = useState<TeamEliminated | null>(null);
 
   useEffect(() => {
@@ -48,6 +49,13 @@ export const useElimination = () => {
   }, [uuid]);
 
   const processNextTeam = async () => {
+    const finishProcessing = () => {
+      animationInProgress.current = false;
+      if (queueRef.current.length > 0) {
+        processNextTeam();
+      }
+    }
+
     if (queueRef.current.length === 0 || animationInProgress.current) {
       return;
     }
@@ -55,7 +63,14 @@ export const useElimination = () => {
     animationInProgress.current = true;
     const nextTeam = queueRef.current.shift()!;
 
+    const alreadyEliminated = eliminatedTeams.some(team => team.teamId === nextTeam.teamId);
+    if (alreadyEliminated) {
+      finishProcessing();
+      return;
+    }
+
     setEliminatedTeam(nextTeam);
+    setEliminatedTeams(prev => [...prev, nextTeam]);
 
     await new Promise(resolve => setTimeout(resolve, 2000));
 
@@ -63,11 +78,7 @@ export const useElimination = () => {
 
     await new Promise(resolve => setTimeout(resolve, 100));
 
-    animationInProgress.current = false;
-
-    if (queueRef.current.length > 0) {
-      processNextTeam();
-    }
+    finishProcessing();
   };
 
   return { tableExists, eliminatedTeam };
